@@ -4,7 +4,7 @@
  * follow any other when a loop ends. Rendered by art/taro/taro_clips.py.
  */
 
-export const ACCENTS = ['ear-flick', 'tail-swish', 'look-up'] as const;
+export const ACCENTS = ['ear-flick', 'tail-swish', 'look-up', 'paw-wash'] as const;
 export const CLIPS = ['idle', ...ACCENTS] as const;
 export type Clip = (typeof CLIPS)[number];
 

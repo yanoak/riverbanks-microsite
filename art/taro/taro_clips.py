@@ -118,7 +118,60 @@ def look_up(t):
     return pose
 
 
-CLIPS = {"idle": idle, "ear-flick": ear_flick, "tail-swish": tail_swish, "look-up": look_up}
+def smoothstep(a, b, x):
+    t = min(max((x - a) / (b - a), 0.0), 1.0)
+    return t * t * (3 - 2 * t)
+
+
+# Key poses for the paw wash (left front paw, the one nearest the camera). The lick pose was
+# found by searching arm angles that put the paw pad just in front of the mouth once the head
+# has dipped; the rest are hand-tuned from it.
+WASH_KEYS = {
+    "lift": {"upper_arm.L": (r(-75), 0, r(-10)), "forearm.L": (r(95), 0, 0),
+             "hand.L": (r(45), 0, 0), "spine.005": (r(10), r(14), 0),
+             "spine.004": (r(4), r(4), 0)},
+    "lick": {"upper_arm.L": (r(-120), 0, r(-20)), "forearm.L": (r(50), 0, 0),
+             "hand.L": (r(30), 0, 0), "spine.005": (r(24), r(18), 0),
+             "spine.004": (r(12), r(6), 0)},
+    "lick-bob": {"upper_arm.L": (r(-122), 0, r(-20)), "forearm.L": (r(52), 0, 0),
+                 "hand.L": (r(34), 0, 0), "spine.005": (r(31), r(18), r(3)),
+                 "spine.004": (r(14), r(6), 0)},
+    "chin": {"upper_arm.L": (r(-135), 0, r(-25)), "forearm.L": (r(75), 0, 0),
+             "hand.L": (r(20), 0, 0), "spine.005": (r(14), r(28), r(-14)),
+             "spine.004": (r(10), r(8), 0), "ear.L": (r(-20), 0, r(15))},
+}
+# (time, key): the paw comes up, two licks, paw to the chin, one more lick, back down.
+WASH_TRACK = [(0.14, "lift"), (0.26, "lick"), (0.32, "lick-bob"), (0.38, "lick"),
+              (0.44, "lick-bob"), (0.50, "lick"), (0.60, "chin"), (0.68, "lick"),
+              (0.73, "lick-bob"), (0.78, "lick"), (0.86, "lift")]
+
+
+def wash_key(t):
+    """The wash pose at time t, eased between the track's keys."""
+    if t <= WASH_TRACK[0][0]:
+        return WASH_KEYS[WASH_TRACK[0][1]]
+    for (t0, a), (t1, b) in zip(WASH_TRACK, WASH_TRACK[1:]):
+        if t <= t1:
+            k = smoothstep(t0, t1, t)
+            A, B = WASH_KEYS[a], WASH_KEYS[b]
+            return {bone: tuple((1 - k) * x + k * y
+                                for x, y in zip(A.get(bone, (0, 0, 0)), B.get(bone, (0, 0, 0))))
+                    for bone in set(A) | set(B)}
+    return WASH_KEYS[WASH_TRACK[-1][1]]
+
+
+def paw_wash(t):
+    pose = idle(t)
+    # Blend from idle into the wash and back out, so the clip still starts and ends on idle.
+    w = smoothstep(0.04, 0.16, t) * (1 - smoothstep(0.84, 0.96, t))
+    for bone, rot in wash_key(t).items():
+        old = pose.get(bone, {}).get("rot", (0, 0, 0))
+        pose.setdefault(bone, {})["rot"] = tuple((1 - w) * o + w * n for o, n in zip(old, rot))
+    return pose
+
+
+CLIPS = {"idle": idle, "ear-flick": ear_flick, "tail-swish": tail_swish, "look-up": look_up,
+         "paw-wash": paw_wash}
 
 
 def apply(pose):

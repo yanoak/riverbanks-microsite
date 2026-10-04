@@ -82,7 +82,8 @@ draws silhouettes only; the painted stripes already supply the interior marks.
       (https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg). HEVC goes through `avconvert`; ffmpeg's
       HEVC alpha wouldn't decode in Safari. Confirmed by Yan in Safari on desktop and on an iPhone
       (Low Power Mode off).
-- [ ] ~~`paw-wash` (stretch)~~ Not built; the four clips are enough for the holding page.
+- [x] `paw-wash` (reopened 2026-10-04 at Yan's go: the stills read, so rendered). Lick pose found by
+      searching arm angles; paw up, two licks, paw to chin, a lick, down. WebM 252 KB, mp4 2.0 MB.
 
 ## Verification
 
