@@ -254,7 +254,7 @@ def cost_by_plan(day, rows):
     if not turns:
         return {}, {}
 
-    marks = sorted((r[4], r[3]) for r in rows)
+    marks = sorted(((r[4], r[3]) for r in rows), key=lambda m: m[0])
     buckets = {}
     for when, model, count, session in turns:
         slug = next((s for epoch, s in marks if epoch >= when), None)
