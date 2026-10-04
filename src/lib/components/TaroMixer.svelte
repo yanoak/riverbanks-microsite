@@ -11,6 +11,7 @@
 	let shown = $state<Clip | null>(null);
 	let current: Clip = 'idle';
 	let lastAccent: Clip | null = null;
+	let started = false;
 	const videos: Partial<Record<Clip, HTMLVideoElement>> = {};
 
 	function play(next: Clip) {
@@ -30,9 +31,13 @@
 		format = videoFormat(navigator.userAgent);
 	});
 
-	$effect(() => {
-		if (format && videos.idle) play('idle');
-	});
+	// Start from the idle video's own canplay, not from an effect on `format`: the effect can run
+	// before bind:this has handed over the elements, and then nothing ever starts.
+	function start() {
+		if (started) return;
+		started = true;
+		play('idle');
+	}
 </script>
 
 <div class="stage" role="img" aria-label={label}>
@@ -46,6 +51,7 @@
 				playsinline
 				preload="auto"
 				class:on={shown === clip}
+				oncanplay={clip === 'idle' ? start : undefined}
 				onended={() => play(pickNext({ current, lastAccent }, Math.random()))}
 			></video>
 		{/each}
