@@ -1,8 +1,8 @@
 ---
 slug: 2026-10-04_taro-rig-and-clips
-status: active
+status: done
 started: 2026-10-04
-finished:
+finished: 2026-10-04
 issue:
 ---
 
@@ -82,7 +82,7 @@ draws silhouettes only; the painted stripes already supply the interior marks.
       (https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg). HEVC goes through `avconvert`; ffmpeg's
       HEVC alpha wouldn't decode in Safari. Confirmed by Yan in Safari on desktop and on an iPhone
       (Low Power Mode off).
-- [ ] `paw-wash` (stretch)
+- [ ] ~~`paw-wash` (stretch)~~ Not built; the four clips are enough for the holding page.
 
 ## Verification
 
@@ -106,9 +106,27 @@ draws silhouettes only; the painted stripes already supply the interior marks.
 
 ## Open questions
 
-- [ ] Blink: are closed-eye decals worth the work, or is a Taro that doesn't blink fine?
+- [x] Blink: Yan, 2026-10-04, "without blinking is fine". No decals.
 - [x] Is the comic look (toon + ink) right for the site? Yes: Yan, 2026-10-04, "looks fantastic".
 
 ## Outcome
 
-_Filled in when this goes to `done` or `abandoned`._
+Done 2026-10-04, in one day.
+- **The rig:** `taro_rig.py` rebuilds a rigged, toon-shaded kitten from the Tripo GLB with no
+  hand steps. It welds the UV seams, decimates to 40k triangles, and builds a 30-bone skeleton
+  with Rigify cat names (no face bones, since the face is painted on) and confined ear weights.
+- **The clips:** `taro_clips.py` renders four seamless 4-second clips, all sharing idle's first
+  frame. Yan liked the comic look; there's no blinking, by choice.
+- **Delivery:** live on the holding page in Chrome, desktop Safari and iPhone Safari. With Low
+  Power Mode on, the first tap starts Taro and unlocks all four clips.
+
+What it changed:
+- **HEVC with alpha has to go through Apple's `avconvert`.** ffmpeg's VideoToolbox encode and
+  its `.mov`-to-`.mp4` remux both give files Safari can't decode.
+- **Video startup can't wait for a load event.** iOS never sends `canplay` before `play()`, and
+  `bind:this` can land after an effect has already run.
+- **The checks to trust:** an AVFoundation decode (`check-alpha.swift`) and the page's `#debug`
+  overlay. An error from them is a real error, not the sandbox.
+
+Rendering costs about 7–10 s a frame (mostly Freestyle). Render at most two clips at once, with
+`--factory-startup`.
