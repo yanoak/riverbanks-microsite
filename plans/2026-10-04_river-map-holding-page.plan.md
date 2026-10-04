@@ -80,7 +80,7 @@ To be settled once the materials arrive. Provisional:
 - [x] Meta tags, share card, favicon (favicon: the glass-sphere watershed from panel
       PAO:5:1, Yan's pick; share card: a 1200×630 capture of the page)
 - [x] CI: GitHub Actions running check, lint, test and build on every push and PR
-- [ ] CD: Vercel project linked to the GitHub repo (production from `main`, previews for
+- [x] CD: Vercel project linked to the GitHub repo (production from `main`, previews for
       branches and PRs); first production deploy
 - [ ] Point `riverbanks.lol` at it (needs whoever holds the DNS)
 - [ ] Check on a phone (see Verification)
