@@ -1,6 +1,6 @@
 ---
 slug: 2026-10-04_river-map-holding-page
-status: draft
+status: active
 started: 2026-10-04
 finished:
 issue:
@@ -52,6 +52,16 @@ To be settled once the materials arrive. Provisional:
 - **Map:** reuse `sunda-maps.py`'s pipeline rather than redraw, extended if the extent should be
   wider than Sunda. Ice Age and present as two layers or a toggle. For phase 1 a static SVG is
   enough; a pan/zoom map (SVG with d3-zoom, or MapLibre with vector tiles) only once points exist.
+- **Phase 1 build (2026-10-04):** one prerendered page. The clips, poster and map are static
+  files under `static/`. The mixer's choices (which clip next, which video format) are pure
+  functions in `src/lib/taro/clips.ts` with unit tests; the component only plays videos.
+  Safari and every iOS browser get HEVC with alpha, everything else VP9 with alpha (Chrome
+  would show HEVC alpha as a black box). The map is the Sunda landmass SVG from the earlier
+  artifact (built by the generator's `sunda-maps.py`) until the wider map exists.
+- **CI/CD:** GitHub Actions for checks (the generator has none, so this is new), Vercel's Git
+  integration for deploys, as the generator does. Considered deploying from Actions with the
+  Vercel CLI, rejected: it needs a token in GitHub secrets and duplicates what the integration
+  already does.
 - **Taro:** a Blender render played as a transparent video loop (WebM VP9 with alpha, plus HEVC
   with alpha for Safari) over the map. Not live 3D. The script is `art/taro/taro_blender.py`.
   The generator has only one reference image per Taro (1264×848, private `style-refs` bucket),
@@ -65,10 +75,16 @@ To be settled once the materials arrive. Provisional:
 
 **Phase 1: holding page**
 - [x] Scaffold SvelteKit (matching the generator)
-- [ ] Deploy to Vercel; point `riverbanks.lol` at it
-- [ ] River-basin map background (Ice Age + present) generated from the generator's pipeline
-- [ ] Taro under-construction animation over the map
-- [ ] Meta tags and share card; check it on a phone
+- [x] Clip mixer logic (`src/lib/taro/clips.ts`), test first
+- [x] Holding page: faint map, Taro mixer, speech balloon, footer band, reduced-motion still
+- [x] Meta tags, share card, favicon (favicon: the glass-sphere watershed from panel
+      PAO:5:1, Yan's pick; share card: a 1200×630 capture of the page)
+- [x] CI: GitHub Actions running check, lint, test and build on every push and PR
+- [ ] CD: Vercel project linked to the GitHub repo (production from `main`, previews for
+      branches and PRs); first production deploy
+- [ ] Point `riverbanks.lol` at it (needs whoever holds the DNS)
+- [ ] Check on a phone (see Verification)
+- [ ] Later: swap the Sunda-only map for the wider Ice Age + present river-basin map
 
 **Phase 2: map as home** (later)
 - [ ] Points of interest data (place, story, act, board)
@@ -164,6 +180,15 @@ Phase 1, phone:
 Phase 1 has nothing to click except possibly a link or two (Seapunk, Instagram). Tab order: those
 links in reading order. Phase 2 needs a full keyboard path through the map's points; to be written
 then.
+
+## Test list (TDD)
+
+- [x] `pickNext`: after an accent clip, always idle — unit — `src/lib/taro/clips.test.ts`
+- [x] `pickNext`: after idle, idle when the roll is above the accent chance — unit — same file
+- [x] `pickNext`: after idle, an accent when the roll is below it, never the last accent — unit
+- [x] `pickNext`: a queued clip wins over the roll — unit
+- [x] `videoFormat`: Safari macOS, iPhone Safari, iPhone Chrome (CriOS) → mp4; Chrome, Edge,
+      Firefox, Android Chrome → webm — unit
 
 ## Verification
 
