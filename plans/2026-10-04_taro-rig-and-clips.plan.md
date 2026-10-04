@@ -75,9 +75,12 @@ draws silhouettes only; the painted stripes already supply the interior marks.
       `art/taro/model/taro-kitten.blend` (gitignored)
 - [x] Build a cat skeleton fitted to the mesh, add automatic weights, check weights; render a
       deformation test sheet
-- [ ] `taro_clips.py`: the rest pose and the `idle` loop, rendered and encoded
-- [ ] One-off clips: `ear-flick`, `tail-swish`, `look-up`
-- [ ] Encode all clips (WebM and HEVC), check alpha and file sizes, publish a preview page
+- [x] `taro_clips.py`: the rest pose and the `idle` loop, rendered and encoded
+- [x] One-off clips: `ear-flick`, `tail-swish`, `look-up` (each a full 96-frame idle cycle
+      with the moment layered on, so every clip starts and ends on idle's first frame)
+- [ ] Encode all clips (WebM and HEVC), check alpha and file sizes, publish a preview page.
+      Encoded, and the preview is at https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg. HEVC alpha
+      still needs checking in Safari and on an iPhone.
 - [ ] `paw-wash` (stretch)
 
 ## Verification
