@@ -1,0 +1,242 @@
+<title>Taro 3D Sketch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,400..800;1,400..800&family=Rubik+Microbe&family=Rubik+Pixels&display=swap">
+<style>
+  /* Layout: one comic panel (the stage) centred on the page, controls under it. */
+  :root {
+    --paper: #f3ecdc; --paper-raised: #ffffff; --ink: #1c1917; --ink-muted: #57524a;
+    --teal: #2e6b65; --teal-text: #2e6b65; --on-fill: #ffffff; --balloon: #ffffff; --on-signal: #1c1917;
+    --stage: #f3ecdc;
+    --font-display: 'Rubik Microbe', 'Rubik', system-ui, sans-serif;
+    --font-body: 'Rubik', system-ui, sans-serif;
+    --font-band: 'Rubik Pixels', 'Rubik', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --paper: #1d2a33; --paper-raised: #26363f; --ink: #f3ecdc; --ink-muted: #b9b2a3; --teal-text: #7fb8b0; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --paper: #1d2a33; --paper-raised: #26363f; --ink: #f3ecdc; --ink-muted: #b9b2a3; --teal-text: #7fb8b0; color-scheme: dark }
+
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); }
+  .wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 40px; display: grid; gap: 16px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font: 400 36px/0.95 var(--font-display); text-transform: uppercase; }
+  .kicker { font: 700 13px/1.3 var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+
+  /* The stage is a comic panel: cream in both themes, ink frame. */
+  .stage { position: relative; aspect-ratio: 5 / 4; max-width: 100%; background: var(--stage); border: 1.5px solid #1c1917; overflow: hidden; touch-action: none; }
+  .stage canvas { display: block; width: 100%; height: 100%; }
+  .balloon { position: absolute; top: 7%; left: 50%; transform: translateX(-108%); max-width: 46%;
+    padding: 12px 20px; background: var(--balloon); color: var(--on-signal); border: 2px solid var(--on-signal); border-radius: 50%;
+    font: 500 clamp(13px, 2.6vw, 18px)/1.3 var(--font-body); letter-spacing: .03em; text-align: center; }
+  .balloon::after { content: ''; position: absolute; right: 16%; bottom: -13px; width: 16px; height: 16px; background: var(--balloon);
+    border-right: 2px solid var(--on-signal); border-bottom: 2px solid var(--on-signal); transform: skewX(30deg) rotate(45deg); }
+  .band { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 8px 12px;
+    font: 400 12px/1 var(--font-band); color: #1c1917; border-top: 1.5px solid #1c1917; background: #f3ecdc; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .controls button { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--ink); background: var(--paper-raised); color: var(--ink);
+    font: 600 15px/1 var(--font-body); cursor: pointer; border-radius: 0; }
+  .controls button[aria-pressed="true"] { background: var(--teal); color: var(--on-fill); border-color: var(--teal); }
+  .controls button:focus-visible { outline: 3px solid var(--teal-text); outline-offset: 2px; }
+  p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-muted); max-width: 65ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Riverbanks · sketch</div>
+      <h1>Taro in 3D</h1>
+    </div>
+    <div class="kicker">Ya's grey tabby</div>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="balloon">Under construction! Check back soon.</div>
+    <div class="band" aria-hidden="true"><span>RIVERBANKS</span><span>riverbanks.lol</span><span>SEAPUNK STUDIOS</span></div>
+  </div>
+
+  <div class="controls" role="group" aria-label="Rendering">
+    <button type="button" id="b-toon" aria-pressed="true">Toon + ink line</button>
+    <button type="button" id="b-flat" aria-pressed="false">Flat, like the comics</button>
+    <button type="button" id="b-wash" aria-pressed="false">Wash a paw</button>
+  </div>
+  <p>Drag across the panel to turn Taro; Taro's head follows the pointer. A primitive-shape stand-in, built in the browser, to judge whether 3D can sit with ligne claire. The real model would be made in Blender from the cast portraits.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  stage.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(30, 5 / 4, 0.1, 100);
+  camera.position.set(0, 2.1, 9.2);
+  camera.lookAt(0, 1.45, 0);
+
+  // Two-step toon ramp: lit and shadow, no gradients.
+  const ramp = new THREE.DataTexture(new Uint8Array([120, 120, 120, 255, 255, 255]), 2, 1, THREE.RGBFormat);
+  ramp.minFilter = ramp.magFilter = THREE.NearestFilter;
+  ramp.needsUpdate = true;
+
+  // Tabby stripes as a canvas texture.
+  function stripes(base, dark, n) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+    const g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, 256, 128);
+    g.fillStyle = dark;
+    for (let i = 0; i < n; i++) {
+      const x = (i + 0.5) * 256 / n;
+      g.beginPath(); g.moveTo(x - 5, 0); g.quadraticCurveTo(x + 9, 64, x - 4, 128); g.lineTo(x + 4, 128); g.quadraticCurveTo(x + 16, 64, x + 5, 0); g.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; return t;
+  }
+  const furTex = stripes('#9aa09c', '#62696a', 14);
+  const headTex = stripes('#9aa09c', '#62696a', 10);
+
+  const mats = [];
+  function mat(color, map) {
+    const toon = new THREE.MeshToonMaterial({ color, map: map || null, gradientMap: ramp });
+    const flat = new THREE.MeshBasicMaterial({ color, map: map || null });
+    const m = { toon, flat }; mats.push(m); return toon;
+  }
+  const inkMat = new THREE.MeshBasicMaterial({ color: 0x1c1917, side: THREE.BackSide });
+  const outlines = [];
+
+  // Inverted-hull ink line: a slightly larger back-faced copy in ink.
+  function part(geo, material, parent, pos, scale, rot, line = 0.045) {
+    const mesh = new THREE.Mesh(geo, material);
+    if (pos) mesh.position.set(...pos);
+    if (scale) mesh.scale.set(...scale);
+    if (rot) mesh.rotation.set(...rot);
+    if (line) {
+      const hull = new THREE.Mesh(geo, inkMat);
+      geo.computeBoundingSphere();
+      const s = 1 + line / geo.boundingSphere.radius;
+      hull.scale.set(s, s, s);
+      mesh.add(hull); outlines.push(hull);
+    }
+    parent.add(mesh);
+    return mesh;
+  }
+
+  const fur = mat(0x9aa09c, furTex);
+  const furHead = mat(0x9aa09c, headTex);
+  const belly = mat(0xe9e4d8);
+  const earIn = mat(0xd9a48a);
+  const nose = mat(0xc4553d);
+  const eye = mat(0x1c1917);
+
+  const cat = new THREE.Group(); scene.add(cat);
+
+  // Body: a sitting pear.
+  part(new THREE.SphereGeometry(1, 40, 28), fur, cat, [0, 0.95, 0], [1.0, 1.05, 0.85]);
+  part(new THREE.SphereGeometry(1, 32, 24), belly, cat, [0, 1.15, 0.52], [0.55, 0.75, 0.4], null, 0.03);
+  // Haunches.
+  part(new THREE.SphereGeometry(1, 32, 24), fur, cat, [-0.62, 0.45, 0.05], [0.5, 0.45, 0.62]);
+  part(new THREE.SphereGeometry(1, 32, 24), fur, cat, [0.62, 0.45, 0.05], [0.5, 0.45, 0.62]);
+  // Front legs and paws.
+  part(new THREE.CylinderGeometry(0.17, 0.19, 1.0, 20), fur, cat, [-0.3, 0.55, 0.62]);
+  const armR = new THREE.Group(); armR.position.set(0.3, 1.05, 0.62); cat.add(armR);
+  part(new THREE.CylinderGeometry(0.17, 0.19, 1.0, 20), fur, armR, [0, -0.5, 0]);
+  part(new THREE.SphereGeometry(0.22, 24, 16), belly, cat, [-0.3, 0.08, 0.72], [1, 0.6, 1.25]);
+  const pawR = part(new THREE.SphereGeometry(0.22, 24, 16), belly, armR, [0, -0.97, 0.1], [1, 0.6, 1.25]);
+
+  // Head.
+  const head = new THREE.Group(); head.position.set(0, 2.15, 0.15); cat.add(head);
+  part(new THREE.SphereGeometry(0.62, 40, 28), furHead, head, [0, 0, 0], [1.15, 0.95, 1]);
+  part(new THREE.SphereGeometry(0.3, 24, 16), belly, head, [0, -0.2, 0.42], [1.25, 0.8, 0.8], null, 0.025);
+  // Ears.
+  for (const s of [-1, 1]) {
+    const ear = part(new THREE.ConeGeometry(0.24, 0.5, 4), furHead, head, [0.42 * s, 0.55, -0.02], null, [0, Math.PI / 4, -0.38 * s]);
+    part(new THREE.ConeGeometry(0.14, 0.32, 4), earIn, head, [0.42 * s, 0.53, 0.06], null, [0, Math.PI / 4, -0.38 * s], 0);
+  }
+  // Eyes, nose.
+  const eyes = [];
+  for (const s of [-1, 1]) eyes.push(part(new THREE.SphereGeometry(0.085, 20, 14), eye, head, [0.25 * s, 0.07, 0.55], [1, 1.25, 0.6], null, 0));
+  part(new THREE.ConeGeometry(0.06, 0.07, 3), nose, head, [0, -0.1, 0.66], null, [Math.PI / 2 + 0.3, 0, Math.PI], 0);
+  // Whiskers: thin ink lines.
+  const wh = new THREE.LineBasicMaterial({ color: 0x1c1917 });
+  for (const s of [-1, 1]) for (const dy of [-0.02, -0.1]) {
+    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0.18 * s, -0.12, 0.6), new THREE.Vector3(0.75 * s, -0.12 + dy * 2, 0.45)]);
+    head.add(new THREE.Line(g, wh));
+  }
+
+  // Tail: a chain of spheres along a swishing curve.
+  const tail = [];
+  for (let i = 0; i < 12; i++) tail.push(part(new THREE.SphereGeometry(0.15 - i * 0.004, 18, 12), i % 3 === 2 ? mat(0x62696a) : fur, cat, [0, 0, 0], null, null, 0.035));
+
+  // Shadow on the ground: a flat ink ellipse at low opacity.
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.35, 48), new THREE.MeshBasicMaterial({ color: 0x1c1917, transparent: true, opacity: 0.12 }));
+  shadow.rotation.x = -Math.PI / 2; shadow.scale.set(1, 0.6, 1); shadow.position.y = 0.01; scene.add(shadow);
+
+  const sun = new THREE.DirectionalLight(0xffffff, 0.9); sun.position.set(3, 5, 4); scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+  // Controls.
+  let mode = 'toon', washing = false, washT = 0;
+  const bToon = document.getElementById('b-toon'), bFlat = document.getElementById('b-flat'), bWash = document.getElementById('b-wash');
+  function setMode(m) {
+    mode = m;
+    bToon.setAttribute('aria-pressed', m === 'toon'); bFlat.setAttribute('aria-pressed', m === 'flat');
+    scene.traverse(o => { if (o.isMesh && o.material !== inkMat) { const e = mats.find(x => x.toon === o.material || x.flat === o.material); if (e) o.material = m === 'toon' ? e.toon : e.flat; } });
+  }
+  bToon.addEventListener('click', () => setMode('toon'));
+  bFlat.addEventListener('click', () => setMode('flat'));
+  bWash.addEventListener('click', () => { washing = !washing; washT = 0; bWash.setAttribute('aria-pressed', washing); });
+
+  let yaw = -0.35, dragging = false, lastX = 0, look = { x: 0, y: 0 };
+  stage.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; stage.setPointerCapture(e.pointerId); });
+  stage.addEventListener('pointerup', () => dragging = false);
+  stage.addEventListener('pointermove', e => {
+    const r = stage.getBoundingClientRect();
+    look.x = ((e.clientX - r.left) / r.width - 0.5) * 2; look.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    if (dragging) { yaw += (e.clientX - lastX) * 0.01; lastX = e.clientX; }
+  });
+
+  function size() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(size).observe(stage); size();
+
+  const clock = new THREE.Clock();
+  function frame() {
+    const t = reduce ? 0 : clock.getElapsedTime();
+    cat.rotation.y += (yaw - cat.rotation.y) * 0.12;
+    // Breathing.
+    cat.children[0].scale.y = 1.05 + Math.sin(t * 2) * 0.012;
+    // Head follows the pointer.
+    head.rotation.y += (look.x * 0.5 - head.rotation.y) * 0.08;
+    head.rotation.x += (look.y * 0.25 - head.rotation.x) * 0.08;
+    head.rotation.z = Math.sin(t * 0.7) * 0.04;
+    // Blink every few seconds.
+    const b = (t % 3.7) < 0.12 ? 0.12 : 1.25;
+    eyes.forEach(e => e.scale.y = b);
+    // Tail swish, curling up behind.
+    for (let i = 0; i < tail.length; i++) {
+      const u = i / (tail.length - 1);
+      const x = 0.7 + u * 0.55 + Math.sin(t * 1.6 - u * 2.4) * 0.25 * u;
+      const y = 0.18 + u * u * 1.5;
+      const z = -0.55 - u * 0.25 + Math.cos(t * 1.6 - u * 2.4) * 0.12 * u;
+      tail[i].position.set(x, y, z);
+    }
+    // Wash a paw: raise the right paw to the mouth and lick.
+    if (washing && !reduce) {
+      washT += 0.016;
+      const up = Math.min(1, washT * 2);
+      armR.rotation.x = -1.9 * up;
+      armR.rotation.z = 0.25 * up;
+      head.rotation.x = 0.35 * up + Math.sin(washT * 9) * 0.08 * up;
+      head.rotation.y = -0.25 * up;
+    } else {
+      armR.rotation.x *= 0.85; armR.rotation.z *= 0.85;
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+</script>
