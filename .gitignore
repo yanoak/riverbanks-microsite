@@ -30,3 +30,6 @@ vite.config.ts.timestamp-*
 
 # Generated 3D models: large, and re-downloadable from Higgsfield (job id in the diary)
 /art/taro/model/*.glb
+/art/taro/refs/taro-cat-*
+/art/taro/model/*.blend
+/art/taro/model/*.blend1
