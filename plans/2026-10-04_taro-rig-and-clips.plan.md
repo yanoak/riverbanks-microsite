@@ -116,10 +116,10 @@ Done 2026-10-04, in one day.
 - **The rig:** `taro_rig.py` rebuilds a rigged, toon-shaded kitten from the Tripo GLB with no
   hand steps. It welds the UV seams, decimates to 40k triangles, and builds a 30-bone skeleton
   with Rigify cat names (no face bones, since the face is painted on) and confined ear weights.
-- **The clips:** `taro_clips.py` renders four seamless 4-second clips, all sharing idle's first
+- **The clips:** `taro_clips.py` renders five seamless 4-second clips (paw-wash added after the first close), all sharing idle's first
   frame. Yan liked the comic look; there's no blinking, by choice.
 - **Delivery:** live on the holding page in Chrome, desktop Safari and iPhone Safari. With Low
-  Power Mode on, the first tap starts Taro and unlocks all four clips.
+  Power Mode on, the first tap starts Taro and unlocks every clip.
 
 What it changed:
 - **HEVC with alpha has to go through Apple's `avconvert`.** ffmpeg's VideoToolbox encode and
