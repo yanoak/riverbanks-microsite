@@ -145,7 +145,7 @@ Phase 1, phone:
 
 ```
 ┌──────────────────────────┐
-│ ░░ river-basin map ░░░░░ │  ← faded, slowly drifting / layers fading Ice Age ↔ now
+│ ░░ river-basin map ░░░░░ │  ← very, very faint (~7%) on paper
 │ ░░░░░░░╱╲░░░░░░░░░░░░░░░ │
 │ ░░░┌────────────────┐░░░ │
 │ ░░░│   (Taro anim)  │░░░ │
@@ -185,8 +185,11 @@ then.
 - [ ] "Present" rivers: the pipeline derives the drowned rivers by flow routing. Present-day rivers
       come either from the same routing above sea level or from HydroRIVERS. Which?
 - [x] Taro art format: a Blender render as a transparent video loop (decided 2026-10-04).
-- [ ] Taro's look: like the comic, or a realistic grey tabby? Which age (kitten or teenage
-      cat)? Balloon or caption? Is spending Higgsfield credits on a mesh approved?
+- [x] Taro's look, age and message (2026-10-04): the kitten in the comic look (toon shading
+      and ink) from a Higgsfield Tripo mesh (credits approved). Taro **says** "Under
+      construction! Check back soon." in a speech balloon, and the map behind is **very, very
+      faint** (about 7% opacity on paper). See [taro-rig-and-clips](2026-10-04_taro-rig-and-clips.plan.md)
+      and the preview at https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg.
 - [ ] Exhibition dates, and when the holding page must be live.
 - [ ] Is `riverbanks.lol` registered, and who controls its DNS?
 - [ ] Should the holding page be in Thai as well as English?
