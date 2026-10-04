@@ -145,7 +145,7 @@ Phase 1, phone:
 
 ```
 ┌──────────────────────────┐
-│ ░░ river-basin map ░░░░░ │  ← very, very faint (~7%) on paper
+│ ░░ river-basin map ░░░░░ │  ← very faint (~12%) on paper
 │ ░░░░░░░╱╲░░░░░░░░░░░░░░░ │
 │ ░░░┌────────────────┐░░░ │
 │ ░░░│   (Taro anim)  │░░░ │
@@ -188,7 +188,7 @@ then.
 - [x] Taro's look, age and message (2026-10-04): the kitten in the comic look (toon shading
       and ink) from a Higgsfield Tripo mesh (credits approved). Taro **says** "Under
       construction! Check back soon." in a speech balloon, and the map behind is **very, very
-      faint** (about 7% opacity on paper). See [taro-rig-and-clips](2026-10-04_taro-rig-and-clips.plan.md)
+      faint** (about 12% opacity on paper). See [taro-rig-and-clips](2026-10-04_taro-rig-and-clips.plan.md)
       and the preview at https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg.
 - [ ] Exhibition dates, and when the holding page must be live.
 - [ ] Is `riverbanks.lol` registered, and who controls its DNS?
