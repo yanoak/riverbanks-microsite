@@ -42,13 +42,15 @@ texture. Toon shading with ink outlines hides triangle topology, so decimate fir
 if the deformation looks bad. Downscale the colour map to 2048²; drop the normal and ORM maps,
 since flat toon shading doesn't use them.
 
-**Rig: the Rigify cat metarig's deform bones, driven straight from the script.** Rigify's generated
-control rig (IK legs, widgets) is for a person animating by hand. Here every pose is computed in
-Python, so FK rotations on the metarig's bones are simpler and fail less often. The metarig is
-fitted to the mesh by script: scaled to the bounding box, then key joints moved to landmarks
-measured from the geometry (leg columns, shoulder and hip heights, head centre, tail root and tip).
-The mesh is parented with automatic weights, and the script checks that every vertex got a
-weight. If bone heat fails on the decimated mesh, fall back to envelope weights plus smoothing.
+**Rig: 30 bones, with Rigify cat names, driven straight from the script.** The cat metarig has
+174 bones, and over 100 of them are face bones (lids, lips, brows, tongue). Taro's face is painted
+on, so they would have nothing to drive. The script builds only the bones Taro moves: a spine of
+six (hips to head), four tail bones, one per ear, and full front and hind legs. They use the
+metarig's names and parenting, so a Rigify control rig could still be generated later. Rigify's
+generated control rig (IK, widgets) is for animating by hand. Here every pose is computed in
+Python, so FK rotations are simpler. Joints are placed from slices through the decimated mesh.
+Weights come from bone heat, then the ear weights are confined to the ears (bone heat let them
+claim most of the skull), and a check asserts that no vertex is unweighted.
 
 **Shading: reuse taro_blender.py's toon look, fed by the texture.** The Tripo colour map goes into
 the multiply in place of the flat fur colour, and a constant ramp makes two tones. Freestyle ink
@@ -71,7 +73,7 @@ draws silhouettes only; the painted stripes already supply the interior marks.
 
 - [x] `taro_rig.py`: import, decimate to ~40k, shrink textures, toon material, save
       `art/taro/model/taro-kitten.blend` (gitignored)
-- [ ] Fit the cat metarig to the mesh, add automatic weights, check weights; render a
+- [x] Build a cat skeleton fitted to the mesh, add automatic weights, check weights; render a
       deformation test sheet
 - [ ] `taro_clips.py`: the rest pose and the `idle` loop, rendered and encoded
 - [ ] One-off clips: `ear-flick`, `tail-swish`, `look-up`
