@@ -29,7 +29,29 @@
 		video.addEventListener('playing', () => ((shown = next), log(`playing ${next}`)), {
 			once: true
 		});
-		video.play().catch((e: Error) => log(`play ${next} refused: ${e.name} ${e.message}`));
+		video.play().catch((e: Error) => {
+			log(`play ${next} refused: ${e.name} ${e.message}`);
+			// iOS in Low Power Mode refuses every autoplay, muted or not, but allows play after a
+			// tap: start Taro on the first one, anywhere on the page.
+			if (e.name !== 'NotAllowedError') return;
+			const retry = () => {
+				removeEventListener('pointerdown', retry);
+				removeEventListener('keydown', retry);
+				log(`retrying ${next} after a tap`);
+				// A tap only unlocks the videos played inside it, so touch every clip now; otherwise
+				// the next one would be refused when this loop ends.
+				for (const [clip, other] of Object.entries(videos)) {
+					if (clip === next || !other) continue;
+					other
+						.play()
+						.then(() => other.pause())
+						.catch(() => {});
+				}
+				play(next);
+			};
+			addEventListener('pointerdown', retry);
+			addEventListener('keydown', retry);
+		});
 		if (next !== 'idle') lastAccent = next;
 		current = next;
 	}
