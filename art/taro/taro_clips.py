@@ -1,10 +1,12 @@
 """Render Taro's animation clips from the rigged kitten.
 
-    /Applications/Blender.app/Contents/MacOS/Blender -b art/taro/model/taro-kitten.blend \
+    /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
+        art/taro/model/taro-kitten.blend \
         -P art/taro/taro_clips.py -- CLIP [CLIP ...] [--still] [--size 720]
 
 Build the .blend first with taro_rig.py. Writes transparent PNG frames to
-art/taro/out/<clip>/frame_0001.png …; encode them with encode.sh. See
+art/taro/out/<clip>/frame_0001.png …; encode them with encode.sh. --factory-startup keeps user
+add-ons out (BlenderGIS hung two renders at startup). Run at most two renders at once. See
 plans/2026-10-04_taro-rig-and-clips.plan.md.
 
 Every clip is one 96-frame cycle of the idle loop with one moment layered on top. The moment
