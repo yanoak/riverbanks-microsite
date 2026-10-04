@@ -33,3 +33,5 @@ vite.config.ts.timestamp-*
 /art/taro/refs/taro-cat-*
 /art/taro/model/*.blend
 /art/taro/model/*.blend1
+.env*
+!.env.example
