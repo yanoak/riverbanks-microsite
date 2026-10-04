@@ -106,7 +106,7 @@ draws silhouettes only; the painted stripes already supply the interior marks.
 ## Open questions
 
 - [ ] Blink: are closed-eye decals worth the work, or is a Taro that doesn't blink fine?
-- [ ] Is the comic look (toon + ink) right for the site, or should Taro be less flat?
+- [x] Is the comic look (toon + ink) right for the site? Yes: Yan, 2026-10-04, "looks fantastic".
 
 ## Outcome
 
