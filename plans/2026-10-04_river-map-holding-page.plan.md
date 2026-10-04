@@ -44,13 +44,18 @@ home page, with points that open comic pages.
 
 To be settled once the materials arrive. Provisional:
 
-- **Stack:** SvelteKit on Vercel, matching the generator, so components and the team's habits
-  carry over. Static for phase 1.
+- **Stack (settled 2026-10-04):** SvelteKit on Vercel, scaffolded to match the generator, the
+  newest of the `~/Coding_work` SvelteKit repos. That means Svelte 5 with runes forced, the kit
+  config inside `vite.config.ts`, adapter-vercel 6, Tailwind v4 via `@tailwindcss/vite`, TS 6,
+  vite 8, ESLint 10, Prettier and vitest. The design tokens are in `src/routes/layout.css`.
+  Phase 1 is fully prerendered.
 - **Map:** reuse `sunda-maps.py`'s pipeline rather than redraw, extended if the extent should be
   wider than Sunda. Ice Age and present as two layers or a toggle. For phase 1 a static SVG is
   enough; a pan/zoom map (SVG with d3-zoom, or MapLibre with vector tiles) only once points exist.
-- **Taro:** an animation over the map. The format (Lottie, sprite sheet, CSS/SVG, or video) depends
-  on what art exists.
+- **Taro:** a Blender render played as a transparent video loop (WebM VP9 with alpha, plus HEVC
+  with alpha for Safari) over the map. Not live 3D. The script is `art/taro/taro_blender.py`.
+  The generator has only one reference image per Taro (1264×848, private `style-refs` bucket),
+  not separate front, three-quarter and side portraits.
 - **Points → comic pages:** each point is a place in a story, opening its boards. This needs
   exported page images; the quickest route is hand-exported PNGs committed as static files.
 
@@ -59,7 +64,8 @@ To be settled once the materials arrive. Provisional:
 <!-- Provisional; rewritten once the materials land. -->
 
 **Phase 1: holding page**
-- [ ] Scaffold SvelteKit and deploy to Vercel; point `riverbanks.lol` at it
+- [x] Scaffold SvelteKit (matching the generator)
+- [ ] Deploy to Vercel; point `riverbanks.lol` at it
 - [ ] River-basin map background (Ice Age + present) generated from the generator's pipeline
 - [ ] Taro under-construction animation over the map
 - [ ] Meta tags and share card; check it on a phone
@@ -178,8 +184,9 @@ then.
       set on the Meghna, which is at the edge of the current clip).
 - [ ] "Present" rivers: the pipeline derives the drowned rivers by flow routing. Present-day rivers
       come either from the same routing above sea level or from HydroRIVERS. Which?
-- [ ] Taro art: who draws it, in what format, which age (kitten or teenage cat)? Does Taro speak
-      in a balloon, or is the message a caption beside her?
+- [x] Taro art format: a Blender render as a transparent video loop (decided 2026-10-04).
+- [ ] Taro's look: like the comic, or a realistic grey tabby? Which age (kitten or teenage
+      cat)? Balloon or caption? Is spending Higgsfield credits on a mesh approved?
 - [ ] Exhibition dates, and when the holding page must be live.
 - [ ] Is `riverbanks.lol` registered, and who controls its DNS?
 - [ ] Should the holding page be in Thai as well as English?

@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+/* Riverbanks design system values, taken from the generator. All Rubik: Microbe for titles,
+   Rubik for lettering, Dirt for labels and SFX, Pixels for the footer band. Fonts load from
+   Google Fonts in app.html. Act colours other than signal (Act One) and silt (Act Four) are
+   placeholders. */
+@theme {
+	--font-sans: 'Rubik', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Rubik Microbe', 'Rubik', ui-sans-serif, sans-serif;
+	--font-label: 'Rubik Dirt', 'Rubik', ui-sans-serif, sans-serif;
+	--font-pixel: 'Rubik Pixels', 'Rubik', ui-sans-serif, sans-serif;
+
+	--color-paper: #f3ecdc;
+	--color-ink: #1c1917;
+	--color-teal: #2e6b65;
+	--color-mangrove: #6b7866;
+	--color-silt: #ae7b50;
+	--color-brick: #c4553d;
+	--color-navy: #1d2a33;
+	--color-signal: #eeff41;
+	--color-caption: #fff4c2;
+	--color-sfx: #ffd23f;
+}

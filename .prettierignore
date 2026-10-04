@@ -1,0 +1,16 @@
+# Package Managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb
+
+# Miscellaneous
+/static/
+
+# Plans and diary: hand-written and script-generated markdown
+/plans/
+/work-diary/
+
+# Art sketches and Blender scripts: standalone, not part of the site build
+/art/
