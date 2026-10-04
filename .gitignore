@@ -27,3 +27,6 @@ vite.config.ts.timestamp-*
 
 # Blender render frames (the encoded loops are what ships)
 /art/taro/out/
+
+# Generated 3D models: large, and re-downloadable from Higgsfield (job id in the diary)
+/art/taro/model/*.glb
