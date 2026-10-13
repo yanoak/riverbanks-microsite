@@ -82,11 +82,12 @@ To be settled once the materials arrive. Provisional:
 - [x] CI: GitHub Actions running check, lint, test and build on every push and PR
 - [x] CD: Vercel project linked to the GitHub repo (production from `main`, previews for
       branches and PRs); first production deploy
-- [ ] Point `riverbanks.lol` at it (needs whoever holds the DNS)
+- [x] Point `riverbanks.lol` at it (found live on Vercel 2026-10-13; apex redirects to `www`)
 - [ ] Check on a phone (see Verification)
 - [ ] Later: swap the Sunda-only map for the wider Ice Age + present river-basin map
 
-**Phase 2: map as home** (later)
+**Phase 2: map as home** (on hold since 2026-10-13: Sam's priority for the next two weeks is
+the landing page and reader, see [comic-reader-landing](2026-10-13_comic-reader-landing.plan.md))
 - [ ] Points of interest data (place, story, act, board)
 - [ ] Interactive map; points open comic pages
 - [ ] Comic page viewer
@@ -216,7 +217,7 @@ then.
       faint** (about 12% opacity on paper). See [taro-rig-and-clips](2026-10-04_taro-rig-and-clips.plan.md)
       and the preview at https://claude.ai/artifact/Trw9tAciyJn1qZtWVHysAg.
 - [ ] Exhibition dates, and when the holding page must be live.
-- [ ] Is `riverbanks.lol` registered, and who controls its DNS?
+- [x] Is `riverbanks.lol` registered, and who controls its DNS? Yes: GoDaddy nameservers, pointed at Vercel.
 - [ ] Should the holding page be in Thai as well as English?
 - [ ] Does the site stay in-world (PLURIVERS portal), or say up front that it is a fiction
       exhibition? The Further ideas assume in-world with an honest "about" page.

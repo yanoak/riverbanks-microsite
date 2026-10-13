@@ -1,12 +1,17 @@
 <script lang="ts">
-	import TaroMixer from '$lib/components/TaroMixer.svelte';
+	import ComicReader from '$lib/components/ComicReader.svelte';
+	import { EDITION, PAGES, pageSrc } from '$lib/comic/edition';
 
 	let { data } = $props();
 
 	const title = 'Riverbanks';
 	const description =
-		'Riverbanks, a climate fiction exhibition by Seapunk Studios. The website is under construction: check back soon.';
-	const message = 'Under construction! Check back soon.';
+		'Riverbanks, a climate fiction comic about ecoarchic institutions by Seapunk Studios. Read the whole series online.';
+
+	// The existing newsletter's signup page. Until it is set, the keep-in-touch box is hidden.
+	const NEWSLETTER_URL = '';
+
+	let reader: ComicReader;
 </script>
 
 <svelte:head>
@@ -16,56 +21,72 @@
 	<meta property="og:url" content={data.origin} />
 	<meta property="og:title" content={title} />
 	<meta property="og:description" content={description} />
-	<meta property="og:image" content="{data.origin}/og.png" />
+	<meta property="og:image" content="{data.origin}/og.jpg" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="Taro the kitten saying: {message}" />
+	<meta property="og:image:alt" content="The Riverbanks posters and a page of the comic" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="theme-color" content="#f3ecdc" />
-	<link rel="preload" as="image" href="/taro/poster.webp" />
+	<meta name="theme-color" content="#1c1917" />
 </svelte:head>
 
-<main class="relative flex min-h-dvh flex-col overflow-hidden bg-paper text-ink">
-	<!-- The river map, as a very faint wash. Sunda only for now; the wider map comes later. -->
-	<img
-		src="/map/sunda-landmass.svg"
-		alt=""
-		class="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[.12] saturate-[.6]"
-	/>
+<main class="bg-paper text-ink">
+	<header class="intro">
+		<p class="kicker">Seapunk Studios presents</p>
+		<h1>Riverbanks</h1>
+		<p class="lede">A climate fiction comic about ecoarchic institutions</p>
 
-	<h1 class="sr-only">{title}</h1>
+		<!-- Draft copy from the canon, for Sam to replace. -->
+		<p>
+			November 2027: six disasters strike in a single week, from the Caribbean to Japan to the Johor
+			Straits. <em>Riverbanks</em> follows what the world builds afterwards, across five acts and more
+			than sixty years, through the people and the rivers who have to live with it.
+		</p>
+		<p>
+			It premiered as an exhibition of A1 boards at BKKCAW 2026 in Lumpini Park, Bangkok. This is
+			the whole series, from the prologue to the epilogue, to read on any screen.
+		</p>
+		<p>
+			<em>Riverbanks</em> is made by Seapunk Studios with collaborators across the region. Essays, references
+			and reading lists are on their way.
+		</p>
 
-	<div class="relative flex flex-1 items-center justify-center px-4 py-6">
-		<!-- One composition in 390 × 600 units: the balloon's SVG uses them directly, and Taro's
-		     stage is placed in percentages of them, so everything scales together and fits the
-		     screen's height as well as its width. -->
-		<div class="composition">
-			<svg class="balloon" viewBox="0 0 390 600" aria-hidden="true">
-				<!-- Outline first (doubled; the fill covers half of it), then the tail, then the fill
-				     again, so the outline breaks where the tail joins. -->
-				<ellipse cx="192" cy="162" rx="165" ry="76" fill="#fff" stroke="#1c1917" stroke-width="5" />
-				<path
-					d="M 144 232 L 161 272 L 182 235 Z"
-					fill="#fff"
-					stroke="#1c1917"
-					stroke-width="2.5"
-					stroke-linejoin="round"
+		<button class="start" onclick={() => reader.goTo(1)}>Start reading ↓</button>
+	</header>
+
+	<ComicReader bind:this={reader} />
+
+	<section class="after" aria-labelledby="credits">
+		<h2 id="credits">Credits</h2>
+		{#if EDITION.credits}
+			<a
+				class="credits"
+				href={pageSrc(EDITION.credits, 1600, PAGES.version)}
+				target="_blank"
+				rel="noopener"
+			>
+				<img
+					src={pageSrc(EDITION.credits, 800, PAGES.version)}
+					width={PAGES.width}
+					height={PAGES.height}
+					alt="The Riverbanks credits board. Open full size."
+					loading="lazy"
 				/>
-				<ellipse cx="192" cy="162" rx="163.8" ry="74.8" fill="#fff" />
-				<text x="192" y="155" font-size="22" font-weight="700" letter-spacing=".5"
-					>UNDER CONSTRUCTION!</text
-				>
-				<text x="192" y="185" font-size="19" font-weight="500">Check back soon.</text>
-			</svg>
-			<p class="sr-only">Taro says: {message}</p>
-			<div class="taro">
-				<TaroMixer label="Taro the kitten, a grey tabby, standing and looking around" />
-			</div>
-		</div>
-	</div>
+			</a>
+		{/if}
+	</section>
+
+	{#if NEWSLETTER_URL}
+		<section class="after" aria-labelledby="keep-in-touch">
+			<h2 id="keep-in-touch">Keep in touch</h2>
+			<p>New essays, events and editions of Riverbanks go out in the Seapunk newsletter.</p>
+			<a class="start" href={NEWSLETTER_URL} target="_blank" rel="noopener"
+				>Subscribe to the newsletter →</a
+			>
+		</section>
+	{/if}
 
 	<footer
-		class="relative flex justify-between gap-4 bg-ink px-4 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom))] font-pixel text-[15px] whitespace-nowrap text-paper sm:px-5 sm:text-xl"
+		class="flex justify-between gap-4 bg-ink px-4 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom))] font-pixel text-[15px] whitespace-nowrap text-paper sm:px-5 sm:text-xl"
 	>
 		<span>RIVERBANKS.LOL</span>
 		<span>SEAPUNK STUDIOS</span>
@@ -73,30 +94,69 @@
 </main>
 
 <style>
-	.composition {
-		position: relative;
-		/* As wide as the screen allows, but never so tall that it runs under the footer. */
-		width: min(100%, 440px, calc((100dvh - 7rem) * 390 / 600));
-		aspect-ratio: 390 / 600;
-	}
-	.balloon {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		overflow: visible;
-	}
-	.balloon text {
+	.intro,
+	.after {
+		width: min(100% - 2rem, 38rem);
+		margin-inline: auto;
 		font-family: var(--font-sans);
-		fill: var(--color-ink);
-		text-anchor: middle;
+		font-size: 1.0625rem;
+		line-height: 1.6;
 	}
-	/* Taro's mouth sits at about (21%, 46%) of the video frame; the balloon's tail points at the
-	   top of the head, so it stays right while the head moves. */
-	.taro {
-		position: absolute;
-		left: 12%;
-		width: 92%;
-		top: 36.6%;
+	.intro {
+		padding: 3rem 0 2.5rem;
+	}
+	.intro p + p {
+		margin-top: 0.9em;
+	}
+	.kicker {
+		font-family: var(--font-label);
+		font-size: 0.95rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-teal);
+	}
+	h1 {
+		font-family: var(--font-display);
+		font-size: clamp(2.25rem, 11.5vw, 6rem);
+		line-height: 0.95;
+		margin: 0.15em 0 0.2em;
+		text-transform: uppercase;
+	}
+	.lede {
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.35;
+		margin-bottom: 1.4rem;
+	}
+	.start {
+		display: inline-block;
+		margin-top: 1.6rem;
+		border-radius: 999px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 0.7rem 1.4rem;
+		font-weight: 600;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.start:focus-visible {
+		outline: 3px solid var(--color-teal);
+		outline-offset: 3px;
+	}
+	.after {
+		padding: 1rem 0 3rem;
+	}
+	h2 {
+		font-family: var(--font-display);
+		font-size: 2rem;
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+	}
+	.credits img {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 0.25rem;
+		box-shadow: 0 1px 6px rgb(28 25 23 / 0.18);
 	}
 </style>
