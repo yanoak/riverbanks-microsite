@@ -15,6 +15,9 @@ export interface Chapter {
 export interface Edition {
 	count: number;
 	chapters: Chapter[];
+	/** The last page of the last chapter. The reader shows only the chapters, so covers,
+	 * blanks and posters around them stay in the PDF. */
+	last: number;
 	/** The credits board. It is shown in the credits box after the book, not in it. */
 	credits?: number;
 }
@@ -25,9 +28,12 @@ export interface Group extends Chapter {
 
 export const PAGES = pages;
 
-// From Compilation Lo Res (12 Oct): two posters, then each act opens on its divider board.
+// From Compilation Lo Res (12 Oct): two posters, then each act opens on its divider board,
+// the Epilogue ends on 46, and the credits board is last.
+// Titles follow the compilation comic's dividers (checked over MCP, 29 Oct).
 export const EDITION: Edition = {
 	count: pages.count,
+	last: 46,
 	credits: pages.count,
 	chapters: [
 		{ title: 'Prologue: Six Disasters, One Dream', first: 3 },
@@ -40,22 +46,25 @@ export const EDITION: Edition = {
 	]
 };
 
-/** The book's pages grouped by chapter, with any pages before the first chapter as "Cover". */
-export function contents({ count, chapters, credits }: Edition): Group[] {
-	if (credits !== undefined && (credits < 1 || credits > count)) {
-		throw new Error(`credits page ${credits} is not in a ${count}-page edition`);
-	}
+/** The book's pages grouped by chapter, from the first chapter's first page to `last`. */
+export function contents({ count, chapters, last, credits }: Edition): Group[] {
+	if (last < 1 || last > count)
+		throw new Error(`last page ${last} is not in a ${count}-page edition`);
 	chapters.forEach((c, i) => {
-		if (c.first < 1 || c.first > count) throw new Error(`${c.title} starts past the end`);
-		if (c.first === credits) throw new Error(`${c.title} starts on the credits page`);
+		if (c.first < 1 || c.first > last) throw new Error(`${c.title} starts after the last page`);
 		if (i > 0 && c.first <= chapters[i - 1].first) throw new Error(`${c.title} is out of order`);
 	});
+	if (
+		credits !== undefined &&
+		(credits < 1 || credits > count || (credits >= chapters[0].first && credits <= last))
+	) {
+		throw new Error(`credits page ${credits} is inside the chapters or not in the edition`);
+	}
 
-	const starts = chapters[0]?.first === 1 ? chapters : [{ title: 'Cover', first: 1 }, ...chapters];
-	return starts.map((c, i) => {
-		const end = i + 1 < starts.length ? starts[i + 1].first : count + 1;
+	return chapters.map((c, i) => {
+		const end = i + 1 < chapters.length ? chapters[i + 1].first - 1 : last;
 		const pages: number[] = [];
-		for (let p = c.first; p < end; p++) if (p !== credits) pages.push(p);
+		for (let p = c.first; p <= end; p++) pages.push(p);
 		return { ...c, pages };
 	});
 }

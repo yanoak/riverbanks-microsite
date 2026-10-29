@@ -6,7 +6,7 @@
 
 	const title = 'Riverbanks';
 	const description =
-		'Riverbanks, a climate fiction comic about ecoarchic institutions by Seapunk Studios. Read the whole series online.';
+		'Riverbanks, a climate fiction series by Seapunk Studios about ecoarchic institutions. Read the Premiere Edition of Volume I online.';
 
 	// The existing newsletter's signup page. Until it is set, the keep-in-touch box is hidden.
 	const NEWSLETTER_URL = '';
@@ -50,7 +50,7 @@
 			and reading lists are on their way.
 		</p>
 
-		<button class="start" onclick={() => reader.goTo(1)}>Start reading ↓</button>
+		<button class="start" onclick={() => reader.goTo(EDITION.chapters[0].first)}>Start reading ↓</button>
 	</header>
 
 	<ComicReader bind:this={reader} />
@@ -84,6 +84,11 @@
 			>
 		</section>
 	{/if}
+
+	<p class="licence">
+		Riverbanks Volume I · BKKCAW26 Premiere Edition · CC BY-NC, Seapunk Studios &amp; collaborators
+		2026 · <a href="https://seapunk.asia" target="_blank" rel="noopener">seapunk.asia</a>
+	</p>
 
 	<footer
 		class="flex justify-between gap-4 bg-ink px-4 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom))] font-pixel text-[15px] whitespace-nowrap text-paper sm:px-5 sm:text-xl"
@@ -151,6 +156,18 @@
 		font-size: 2rem;
 		text-transform: uppercase;
 		margin-bottom: 0.75rem;
+	}
+	.licence {
+		width: min(100% - 2rem, 38rem);
+		margin: 0 auto;
+		padding: 0 0 1.5rem;
+		font-family: var(--font-sans);
+		font-size: 0.85rem;
+		font-weight: 300;
+		color: rgb(28 25 23 / 0.75);
+	}
+	.licence a {
+		color: inherit;
 	}
 	.credits img {
 		display: block;

@@ -69,7 +69,6 @@
 						decoding="async"
 					/>
 				</a>
-				<span class="mark" aria-hidden="true">PREVIEW EDITION · © 2026 SEAPUNK STUDIOS</span>
 				<span class="missing" aria-hidden="true">{position.get(p)}</span>
 			</figure>
 		{/each}
@@ -129,7 +128,6 @@
 		width: min(100% - 1rem, 860px);
 		margin: 0;
 		overflow: hidden;
-		container-type: inline-size;
 		background: color-mix(in srgb, var(--color-ink) 8%, var(--color-paper));
 		box-shadow: 0 1px 6px rgb(28 25 23 / 0.18);
 		scroll-margin-top: 3.5rem;
@@ -148,25 +146,6 @@
 		display: block;
 		width: 100%;
 		height: 100%;
-	}
-	/* The watermark: a quiet strip down the right edge, under the reader's own fingers rather
-	   than over the art's centre. */
-	.mark {
-		position: absolute;
-		z-index: 2;
-		top: 30%;
-		right: 0;
-		pointer-events: none;
-		writing-mode: vertical-rl;
-		padding: 0.9em 0.35em;
-		background: rgb(243 236 220 / 0.6);
-		color: rgb(28 25 23 / 0.7);
-		font-family: var(--font-sans);
-		font-size: clamp(5.5px, 1cqi, 10px);
-		font-weight: 600;
-		letter-spacing: 0.18em;
-		white-space: nowrap;
-		border-radius: 0.3em 0 0 0.3em;
 	}
 	/* Behind the image: shows only if it fails to load. */
 	.missing {

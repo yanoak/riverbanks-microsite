@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { chapterAt, contents, EDITION, pageSrc, type Edition } from './edition';
 
 const edition: Edition = {
-	count: 8,
-	credits: 8,
+	count: 10,
+	last: 8,
+	credits: 9,
 	chapters: [
 		{ title: 'Prologue', first: 3 },
 		{ title: 'Act One', first: 4 },
@@ -12,25 +13,16 @@ const edition: Edition = {
 };
 
 describe('contents', () => {
-	it('lists each page once, in order, with its chapter', () => {
-		const pages = contents(edition).flatMap((c) => c.pages);
-		expect(pages).toEqual([1, 2, 3, 4, 5, 6, 7]);
+	it('lists each chapter page once, in order, with its chapter', () => {
+		expect(contents(edition).flatMap((c) => c.pages)).toEqual([3, 4, 5, 6, 7, 8]);
 		const act = contents(edition).find((c) => c.title === 'Act One');
 		expect(act?.pages).toEqual([4, 5, 6]);
 	});
 
-	it('leaves the credits page out of the book', () => {
-		expect(contents(edition).flatMap((c) => c.pages)).not.toContain(8);
-	});
-
-	it('puts pages before the first chapter in a front-matter group', () => {
-		const [front] = contents(edition);
-		expect(front).toMatchObject({ title: 'Cover', pages: [1, 2] });
-	});
-
-	it('has no front-matter group when the first chapter starts on page 1', () => {
-		const groups = contents({ count: 3, chapters: [{ title: 'Only', first: 1 }] });
-		expect(groups).toEqual([{ title: 'Only', first: 1, pages: [1, 2, 3] }]);
+	it('leaves out every page outside the chapters', () => {
+		const pages = contents(edition).flatMap((c) => c.pages);
+		for (const p of [1, 2, 9, 10]) expect(pages).not.toContain(p);
+		expect(contents(edition).map((c) => c.title)).toEqual(['Prologue', 'Act One', 'Epilogue']);
 	});
 
 	it('refuses chapters out of order', () => {
@@ -39,26 +31,42 @@ describe('contents', () => {
 		).toThrow(/order/);
 	});
 
-	it('refuses a chapter starting past the end or on the credits page', () => {
+	it('refuses a chapter starting after the last page', () => {
 		expect(() => contents({ ...edition, chapters: [{ title: 'Late', first: 9 }] })).toThrow();
-		expect(() => contents({ ...edition, chapters: [{ title: 'Credits', first: 8 }] })).toThrow();
+	});
+
+	it('refuses a last page past the end of the edition', () => {
+		expect(() => contents({ ...edition, last: 11 })).toThrow(/last/);
+	});
+
+	it('refuses a credits page inside the chapters', () => {
+		expect(() => contents({ ...edition, credits: 5 })).toThrow(/credits/);
+		expect(() => contents({ ...edition, credits: 12 })).toThrow(/credits/);
 	});
 
 	it('accepts the edition the site ships', () => {
 		expect(() => contents(EDITION)).not.toThrow();
 	});
 
-	it('refuses a credits page that is not in the edition', () => {
-		expect(() => contents({ ...edition, credits: 12 })).toThrow(/credits/);
+	it('names the acts as the Premiere Edition dividers do', () => {
+		expect(EDITION.chapters.map((c) => c.title)).toEqual([
+			'Prologue: Six Disasters, One Dream',
+			'Act One: Life, the Pluriverse, and Everything',
+			'Act Two: House of Taming Currents',
+			'Act Three: Kinetic Adaptation Economy',
+			'Act Four: Gross Deliciousness Index',
+			'Act Five: A Visa for a Hilsa',
+			'Epilogue: River of Seeds'
+		]);
 	});
 });
 
 describe('chapterAt', () => {
 	it('gives the chapter of any page, including the last in the book', () => {
-		expect(chapterAt(edition, 1).title).toBe('Cover');
+		expect(chapterAt(edition, 3).title).toBe('Prologue');
 		expect(chapterAt(edition, 4).title).toBe('Act One');
 		expect(chapterAt(edition, 6).title).toBe('Act One');
-		expect(chapterAt(edition, 7).title).toBe('Epilogue');
+		expect(chapterAt(edition, 8).title).toBe('Epilogue');
 	});
 });
 
