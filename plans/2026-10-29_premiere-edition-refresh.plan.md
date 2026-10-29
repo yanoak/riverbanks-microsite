@@ -113,9 +113,9 @@ Edition and CC BY-NC. The site preview deploy shows all of this, and production 
 - [x] Footer band set on the compilation comic over MCP (29 Oct, rev 299–345): the comic's
       default, plus the per-page overrides on 5–42 and 44–49. The posters (51–52) get it without
       a page number. Headers and hidden bands were left as they were (the footers on 9, 51 and 52 stay off)
-- [x] Generator `219b51e`: footer centre in Rubik Light, no stroke (not pushed yet)
-- [ ] Push the generator so production draws the light centre; check the footer in the editor on
-      a dark page and a light one
+- [x] Generator `219b51e`: footer centre in Rubik Light, no stroke. Pushed and live; checked on
+      p15 in the production editor. The centre is small (14 px at most on the board), so Sam
+      should judge it on the iPad export
 - [ ] Yan exports the PDF with the watermark off and puts it in `~/Downloads`
 - [ ] Run `scripts/comic-pages.sh` on it; contact sheet of every page; commit the images and
       `pages.json`
