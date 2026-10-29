@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ComicReader from '$lib/components/ComicReader.svelte';
 	import { EDITION, PAGES, pageSrc } from '$lib/comic/edition';
 
 	let { data } = $props();
@@ -10,8 +9,6 @@
 
 	// The existing newsletter's signup page. Until it is set, the keep-in-touch box is hidden.
 	const NEWSLETTER_URL = '';
-
-	let reader: ComicReader;
 </script>
 
 <svelte:head>
@@ -50,10 +47,17 @@
 			and reading lists are on their way.
 		</p>
 
-		<button class="start" onclick={() => reader.goTo(EDITION.chapters[0].first)}>Start reading ↓</button>
+		<a class="start" href="/p/{EDITION.chapters[0].first}">Start reading →</a>
 	</header>
 
-	<ComicReader bind:this={reader} />
+	<nav class="after" aria-labelledby="chapters">
+		<h2 id="chapters">Chapters</h2>
+		<ol class="chapters">
+			{#each EDITION.chapters as c (c.first)}
+				<li><a href="/p/{c.first}">{c.title}</a></li>
+			{/each}
+		</ol>
+	</nav>
 
 	<section class="after" aria-labelledby="credits">
 		<h2 id="credits">Credits</h2>
@@ -168,6 +172,19 @@
 	}
 	.licence a {
 		color: inherit;
+	}
+	.chapters {
+		display: grid;
+		gap: 0.35rem;
+	}
+	.chapters a {
+		color: inherit;
+		font-weight: 500;
+		text-underline-offset: 0.2em;
+	}
+	.chapters a:focus-visible {
+		outline: 3px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 	.credits img {
 		display: block;

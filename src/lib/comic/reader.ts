@@ -1,6 +1,6 @@
 /**
  * The page reader's view of an edition: the book as a flat list of pages, turning, the `/p/[n]`
- * route's guard, and what to fetch ahead. Pages are always the PDF page number, the one the
+ * route's guard and the scrubber's chapter ticks. PhotoSwipe does the preloading. Pages are always the PDF page number, the one the
  * footer prints, so `/p/15` is the page that says "p15".
  */
 import { chapterAt, contents, type Chapter, type Edition } from './edition';
@@ -29,16 +29,10 @@ export function guard(
 	return pages.includes(page) ? { page } : { redirect: pages[0] };
 }
 
-/** The pages to prerender, as `/p/[n]` entries. */
+/** The pages to prerender, as `/p/[n]` entries: all of them, since the site is static and a
+ * page outside the book needs its own redirect file. */
 export function entries(edition: Edition): { n: string }[] {
-	return book(edition).map((p) => ({ n: String(p) }));
-}
-
-/** The pages to fetch ahead of a turn: the next two, then the previous one. */
-export function preload(edition: Edition, page: number): number[] {
-	const pages = book(edition);
-	const i = pages.indexOf(page);
-	return [pages[i + 1], pages[i + 2], pages[i - 1]].filter((p) => p !== undefined);
+	return Array.from({ length: edition.count }, (_, i) => ({ n: String(i + 1) }));
 }
 
 /** One scrubber tick per chapter, at the 0-based index of its first page in the book. */

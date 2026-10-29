@@ -95,17 +95,18 @@ and the repo, noted in F0.
 
 ## Tasks
 
-- [ ] Spike: scroll-snap baseline against PhotoSwipe on five pages, on the iPad, an iPhone and a
-      trackpad; write the result here and pick the engine (throwaway branch, not merged)
-- [ ] `src/lib/comic/reader.ts`: page/position helpers, the route's page guard, neighbours to
-      preload (tests first, see the Test list)
-- [ ] `/p/[n]` route, prerendered: the reader filling the screen, swipe and zoom, the URL kept in
-      step, `<title>` naming the act and page
-- [ ] Controls: tap to show, chapter menu, scrubber, previous and next, full screen, back to home;
-      auto-hide
-- [ ] Keyboard: every shortcut below, focus management, a visible focus ring
-- [ ] End card after the Epilogue: credits, back to home, a slot for the form
-- [ ] Home page: drop the scroll book, link "Start reading" and the chapter list into `/p/[n]`
+- [ ] ~~Spike first~~ Built on PhotoSwipe straight away (no iPad on 29 Oct). Tomorrow's iPad test
+      is the spike, on the real reader. If it fails, only `PageReader.svelte`'s engine changes
+- [x] `src/lib/comic/reader.ts`: the book, turning, the route's guard, the prerender entries and
+      the scrubber ticks (tests first). Preloading is left to PhotoSwipe (`preload: [1, 2]`)
+- [x] `/p/[n]` route, prerendered: the reader filling the screen, swipe and zoom, the URL kept in
+      step, `<title>` naming the act and page. Every page `1…count` is prerendered, so those
+      outside the book become redirect files
+- [x] Controls: tap to show, chapter menu (a native select), scrubber, previous and next, full
+      screen, back to home; auto-hide after 4 s
+- [x] Keyboard: every shortcut below, focus management, a visible focus ring
+- [x] End card after the Epilogue: credits, back to home (the form slot comes with F4)
+- [x] Home page: drop the scroll book, link "Start reading" and the chapter list into `/p/[n]`
 - [ ] Higher-resolution tier for zoom, if the spike calls for it
 - [ ] Phone pass (390 px): the same reader, with a one-time "pinch to zoom" hint
 - [ ] Preview deploy; run Verification on the iPad with Sam
@@ -198,15 +199,25 @@ Image failed: the same box, with the number and "Open full size".
 
 ## Test list (TDD)
 
-- [ ] The book lists the chapter pages in reading order, so the next of the last page is the end
-      card and the previous of the first is nothing — unit — `src/lib/comic/reader.test.ts`
-- [ ] The route guard: a chapter page is allowed, a page outside the chapters redirects to the
+- [x] The book lists the chapter pages in reading order. The next of the last page is the end card,
+      and the previous of the first is nothing — unit — `src/lib/comic/reader.test.ts`
+- [x] The route guard: a chapter page is allowed, a page outside the chapters redirects to the
       first chapter page, and anything that isn't a whole number is refused — unit — `reader.test.ts`
-- [ ] Every page `/p/[n]` that prerenders is exactly the book's pages — unit — `reader.test.ts`
-- [ ] Neighbours to preload: the next two and the previous one, clipped at both ends of the book
-      — unit — `reader.test.ts`
-- [ ] Scrubber ticks: one per chapter, placed at the chapter's book position — unit — `reader.test.ts`
-- [ ] The page's accessible name and `<title>` give the act and page number — unit — `reader.test.ts`
+- [x] Every page of the edition is prerendered, so the ones outside the book can redirect — unit
+- [x] ~~Neighbours to preload~~: dropped, because PhotoSwipe's `preload` option does it
+- [x] Scrubber ticks: one per chapter, placed at the chapter's book position — unit
+- [x] The page's accessible name and `<title>` give the act and page number — unit
+
+**Checked in desktop Chrome (29 Oct, dev server):**
+- `/p/15` fills the screen, and the title reads "Page 15, Act Two…".
+- `→` turns, and the URL and title follow.
+- A click shows the controls, and `Esc` hides them.
+- `Home`, `End` and `PageDown` work.
+- The chapter menu → Act Four opens p24, with focus on the page.
+- `=` twice zooms in and shows the hint; `→` then pans and doesn't turn; `0` fits.
+- Past the last page comes the end card. Its "Back to Riverbanks" link works.
+- From "Start reading", two turns, then Back: the home page in one step.
+- No console errors.
 
 ## Verification
 

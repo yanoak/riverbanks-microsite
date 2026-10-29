@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Edition } from './edition';
-import { book, entries, guard, label, preload, step, ticks } from './reader';
+import { book, entries, guard, label, step, ticks } from './reader';
 
 const edition: Edition = {
 	count: 10,
@@ -49,20 +49,19 @@ describe('guard', () => {
 });
 
 describe('entries', () => {
-	it('prerenders exactly the book pages', () => {
-		expect(entries(edition)).toEqual(book(edition).map((p) => ({ n: String(p) })));
-	});
-});
-
-describe('preload', () => {
-	it('fetches the next two pages and the previous one', () => {
-		expect(preload(edition, 5)).toEqual([6, 7, 4]);
-	});
-
-	it('stops at both ends of the book', () => {
-		expect(preload(edition, 3)).toEqual([4, 5]);
-		expect(preload(edition, 8)).toEqual([7]);
-		expect(preload(edition, 7)).toEqual([8, 6]);
+	it('prerenders every page of the edition, so the ones outside the book can redirect', () => {
+		expect(entries(edition).map((e) => e.n)).toEqual([
+			'1',
+			'2',
+			'3',
+			'4',
+			'5',
+			'6',
+			'7',
+			'8',
+			'9',
+			'10'
+		]);
 	});
 });
 
