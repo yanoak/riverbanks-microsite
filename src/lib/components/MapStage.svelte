@@ -4,8 +4,8 @@
 	import {
 		MAP,
 		MARKERS,
-		PLACES,
 		RIVERS,
+		STOPS,
 		onMap,
 		spread,
 		toScreen,
@@ -13,7 +13,6 @@
 		type Frame,
 		type Point
 	} from '$lib/comic/map';
-	import { badge } from '$lib/comic/chapters';
 
 	let {
 		frame,
@@ -24,26 +23,26 @@
 		frame: Frame;
 		/** The screen's width: a pill near the right edge opens leftwards. */
 		width: number;
-		/** The chapter (its first page) lit by hover or focus, here or in the chapter list. */
+		/** The stop (its first page) lit by hover or focus, here or in the chapter list. */
 		hot?: number | null;
 		/** Bottom layouts (portrait tablets, phones): no always-on "Start here" pill, which would
-		 * cover the markers around Johor; the panel has Start reading. */
+		 * cover other markers; the panel has Start reading. */
 		compact?: boolean;
 	} = $props();
 
 	// Placement mode: `/?place` in `npm run dev` only. Markers drag, arrow keys nudge them, and
-	// Copy positions gives each marker's longitude and latitude for PLACES in `map.ts`.
+	// Copy positions gives each stop's longitude and latitude for STOPS in `map.ts`.
 	let placing = $state(false);
 	let at = $state<Record<number, Point>>({ ...MARKERS });
 	let copied = $state(false);
 
-	// Markers that would overlap at this scale (the three around Johor) are pushed apart; while
-	// placing, they stay exactly where they are dragged.
+	// Markers that would overlap at this scale (Act Two and the Epilogue, both at Muara) are pushed
+	// apart; while placing, they stay exactly where they are dragged.
 	const marks = $derived.by(() => {
-		const ms = onMap(EDITION, at).map((m, i) => ({ ...m, i, ...toScreen(m, frame) }));
+		const ms = onMap(EDITION, STOPS, at).map((m, i) => ({ ...m, i, ...toScreen(m, frame) }));
 		return placing ? ms : spread(ms, 34);
 	});
-	const hotRiver = $derived(hot === null ? null : PLACES[hot]?.river);
+	const hotRiver = $derived(marks.find((m) => m.key === hot)?.river ?? null);
 
 	let dragging: number | null = null;
 	function grab(e: PointerEvent, first: number) {
@@ -118,33 +117,29 @@
 		{/each}
 	</svg>
 
-	{#each marks as m (m.first)}
+	{#each marks as m (m.key)}
 		<a
 			class="marker"
 			class:start={m.i === 0 && !compact}
-			class:hot={hot === m.first}
+			class:hot={hot === m.key}
 			class:leftward={m.left > width - 320}
-			href="/p/{m.first}"
+			href="/p/{m.key}"
 			style:left="{m.left}px"
 			style:top="{m.top}px"
-			aria-label="{m.title}, from page {m.first}"
-			onpointerenter={() => (hot = m.first)}
+			aria-label="{m.title}, {m.where}, from page {m.key}"
+			onpointerenter={() => (hot = m.key)}
 			onpointerleave={() => (hot = null)}
-			onfocus={() => (hot = m.first)}
+			onfocus={() => (hot = m.key)}
 			onblur={() => (hot = null)}
-			onpointerdown={(e) => grab(e, m.first)}
-			onkeydown={(e) => nudge(e, m.first)}
+			onpointerdown={(e) => grab(e, m.key)}
+			onkeydown={(e) => nudge(e, m.key)}
 			onclick={(e) => placing && e.preventDefault()}
 			draggable="false"
 		>
-			<span class="dot" aria-hidden="true">{badge(m.i)}</span>
+			<span class="dot" aria-hidden="true">{m.badge}</span>
 			<span class="pill" aria-hidden="true">
-				{m.i === 0 && !(hot === m.first)
-					? compact
-						? 'Start here'
-						: 'Start here · Prologue'
-					: m.title}
-				{#if hot === m.first && PLACES[m.first]}<small>{PLACES[m.first].where}</small>{/if}
+				{m.i === 0 && hot !== m.key ? `Start here · ${m.title}` : m.title}
+				{#if hot === m.key}<small>{m.where}</small>{/if}
 			</span>
 		</a>
 	{/each}
@@ -223,11 +218,12 @@
 	.dot {
 		display: grid;
 		flex: none;
-		width: 1.9rem;
+		min-width: 1.9rem;
 		height: 1.9rem;
+		padding: 0 0.35rem;
 		place-items: center;
 		border: 2px solid var(--color-ink);
-		border-radius: 50%;
+		border-radius: 999px;
 		background: var(--color-signal);
 		font-size: 0.75rem;
 		font-weight: 600;

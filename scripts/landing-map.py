@@ -47,7 +47,6 @@ RIVERS = {
     "ayeyarwady": (97.65, 25.7),  # Myitsone, where the Ayeyarwady begins
     "chao-phraya": (98.95, 19.3),  # the Ping above Chiang Mai
     "muar": (102.3, 2.75),  # the upper Muar
-    "johor": (103.75, 1.95),  # the Johor River, down to the Johor Straits
     "north-sunda": (111.5, 0.2),  # the Kapuas, then the drowned North Sunda River past Natuna
 }
 

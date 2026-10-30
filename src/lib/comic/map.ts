@@ -4,6 +4,7 @@
  * latitude; on screen they are in the map SVG's own units (`static/map/sea.svg`, drawn with its
  * rivers by `scripts/landing-map.py`, which also writes `map.json`).
  */
+import { badge, split } from './chapters';
 import type { Edition } from './edition';
 import meta from './map.json';
 
@@ -26,16 +27,45 @@ export type River = keyof typeof meta.rivers;
 export const MAP = { w: meta.w, h: meta.h };
 export const RIVERS = meta.rivers;
 
-/** Where each chapter happens, keyed by its first page, and its river (Southeast Asia scale). */
-export const PLACES: Record<number, LonLat & { where: string; river: River | null }> = {
-	4: { lon: 103.8, lat: 1.45, where: 'Johor Straits', river: 'johor' },
-	6: { lon: 108.2, lat: 3.95, where: 'Natuna Island, the Sunda Summit', river: 'north-sunda' },
-	11: { lon: 102.57, lat: 2.05, where: 'Muara, on the Muar', river: 'muar' },
-	19: { lon: 97.65, lat: 25.7, where: 'Myitsone, on the Ayeyarwady', river: 'ayeyarwady' },
-	26: { lon: 98.98, lat: 18.79, where: 'The Chao Phraya to Chiang Mai', river: 'chao-phraya' },
-	33: { lon: 90.65, lat: 23.23, where: 'A village on the Meghna', river: 'meghna' },
-	43: { lon: 102.57, lat: 2.05, where: 'Svalbard, then Muara', river: 'muar' }
+export type Stop = LonLat & {
+	/** The chapters told here, by first page, in reading order. */
+	chapters: number[];
+	/** A name for a stop of more than one chapter; one chapter goes by its own title. */
+	name?: string;
+	where: string;
+	river: River | null;
 };
+
+/** The map's stops: where the chapters happen, and the river each happens on, at Southeast Asia
+ * scale. The Prologue and Act One share one, at the mouth of the North Sunda River (the end of
+ * its trace in `map.json`), north-east of Natuna. */
+export const STOPS: Stop[] = [
+	{
+		chapters: [4, 6],
+		name: 'Prologue & Act One',
+		where: 'The mouth of the Sunda River',
+		lon: 109.5,
+		lat: 4.96,
+		river: 'north-sunda'
+	},
+	{ chapters: [11], where: 'Muara, on the Muar', lon: 102.57, lat: 2.05, river: 'muar' },
+	{
+		chapters: [19],
+		where: 'Myitsone, on the Ayeyarwady',
+		lon: 97.65,
+		lat: 25.7,
+		river: 'ayeyarwady'
+	},
+	{
+		chapters: [26],
+		where: 'The Chao Phraya to Chiang Mai',
+		lon: 98.98,
+		lat: 18.79,
+		river: 'chao-phraya'
+	},
+	{ chapters: [33], where: 'A village on the Meghna', lon: 90.65, lat: 23.23, river: 'meghna' },
+	{ chapters: [43], where: 'Svalbard, then Muara', lon: 102.57, lat: 2.05, river: 'muar' }
+];
 
 /** Longitude and latitude to map units: equirectangular, as the map is drawn. */
 export function project({ lon, lat }: LonLat, p: Projection = meta): Point {
@@ -54,13 +84,14 @@ export function unproject({ x, y }: Point, p: Projection = meta): LonLat {
 	};
 }
 
+/** Each stop's marker in map units, keyed by the stop's first page. */
 export const MARKERS: Record<number, Point> = Object.fromEntries(
-	Object.entries(PLACES).map(([first, place]) => [first, project(place)])
+	STOPS.map((s) => [s.chapters[0], project(s)])
 );
 
 /**
- * Push apart markers closer than `min` px (Act Two and the Epilogue share Muara, and the Prologue
- * is next door), each pair about its middle, a few rounds. Markers far enough apart don't move.
+ * Push apart markers closer than `min` px (Act Two and the Epilogue share Muara), each pair about
+ * its middle, a few rounds. Markers far enough apart don't move.
  */
 export function spread<T extends { left: number; top: number }>(points: T[], min: number): T[] {
 	const ps = points.map((p) => ({ ...p }));
@@ -86,19 +117,46 @@ export function spread<T extends { left: number; top: number }>(points: T[], min
 	return ps;
 }
 
-/** The chapters with a marker, in reading order, so Tab follows the book. */
+/** The stops with a marker, in reading order, so Tab follows the book: each keyed by its first
+ * page, with its title, the badge its dot shows ("P·I" for the Prologue and Act One), and where. */
 export function onMap(
 	edition: Edition,
+	stops: Omit<Stop, 'lon' | 'lat'>[],
 	markers: Record<number, Point>
-): { title: string; first: number; x: number; y: number }[] {
-	return edition.chapters.flatMap(({ title, first }) =>
-		markers[first] ? [{ title, first, ...markers[first] }] : []
-	);
+): {
+	key: number;
+	title: string;
+	sub: string;
+	where: string;
+	river: River | null;
+	badge: string;
+	x: number;
+	y: number;
+}[] {
+	const index = (first: number) => edition.chapters.findIndex((c) => c.first === first);
+	return stops.flatMap((s) => {
+		const key = s.chapters[0];
+		if (!markers[key]) return [];
+		const titles = s.chapters.map((f) => edition.chapters[index(f)].title);
+		return [
+			{
+				key,
+				title: s.name ?? titles[0],
+				sub: titles
+					.map((t) => split(t).sub)
+					.filter(Boolean)
+					.join(' / '),
+				where: s.where,
+				river: s.river,
+				badge: s.chapters.map((f) => badge(index(f), edition.chapters.length)).join('·'),
+				...markers[key]
+			}
+		];
+	});
 }
 
-/** The box around the markers, padded on every side, in map units. */
-export function bounds(markers: Record<number, Point>, pad: number): Box {
-	const ps = Object.values(markers);
+/** The box around some points, padded on every side, in map units. */
+export function bounds(ps: Point[], pad: number): Box {
 	const x = Math.min(...ps.map((p) => p.x)) - pad;
 	const y = Math.min(...ps.map((p) => p.y)) - pad;
 	return {
@@ -108,6 +166,23 @@ export function bounds(markers: Record<number, Point>, pad: number): Box {
 		h: Math.max(...ps.map((p) => p.y)) + pad - y
 	};
 }
+
+/** The points of a path as `landing-map.py` writes it (one M, then relative l steps). */
+export function pathPoints(d: string): Point[] {
+	const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+	const ps: Point[] = [];
+	for (let i = 0; i + 1 < n.length; i += 2) {
+		const prev = ps.at(-1);
+		ps.push(prev ? { x: prev.x + n[i], y: prev.y + n[i + 1] } : { x: n[i], y: n[i + 1] });
+	}
+	return ps;
+}
+
+/** What the map frames: every marker and every point of every river, so the lit one shows. */
+export const FRAMED: Point[] = [
+	...Object.values(MARKERS),
+	...Object.values(RIVERS).flatMap((r) => [...pathPoints(r.land), ...pathPoints(r.drowned)])
+];
 
 /**
  * Scale and place the map so `box` (map units) fits, centred, in `free` (screen px): the screen

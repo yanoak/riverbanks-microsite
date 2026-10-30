@@ -55,13 +55,16 @@ glowing marker per chapter and Sam's welcome over it.
   - `frame()` also never lets the map be narrower than the screen.
   - First tries, 86–118°E and 78–124°E, left a strip of flat sea beside the map on wide
     screens and hid Myitsone under the header.
-- Markers are places in longitude and latitude (`PLACES` in `map.ts`), at Southeast Asia
-  scale, from the drafts:
+- Markers are *stops* in longitude and latitude (`STOPS` in `map.ts`), at Southeast Asia
+  scale, from the drafts. A stop can hold more than one chapter. The Prologue and Act One are
+  one stop (Yan, 30 Oct), at the mouth of the North Sunda River, where its trace meets the Ice
+  Age sea north-east of Natuna. The landing's chapter list follows the map, one row per stop
+  ("Prologue & Act One", badge P·I, opening at the Prologue). The reader keeps them as two
+  chapters, since the comic has a divider for each.
 
-  | Chapter | Place | River |
+  | Stop | Place | River |
   |---|---|---|
-  | Prologue | Johor Straits | Johor |
-  | Act One | Natuna, the Sunda Summit | Kapuas into the drowned North Sunda River |
+  | Prologue & Act One | the mouth of the Sunda River (109.5°E, 5.0°N) | Kapuas into the drowned North Sunda River |
   | Act Two | Muara, on the Muar | Muar |
   | Act Three | Myitsone | Ayeyarwady |
   | Act Four | the Chao Phraya to Chiang Mai | Chao Phraya, from the Ping |
@@ -73,8 +76,10 @@ glowing marker per chapter and Sam's welcome over it.
   course and the drowned course separately.
 - Hovering or focusing a chapter (or its marker) lights its river: yellow on an ink halo, the
   drowned stretch dotted. The pill adds where the act happens.
-- Act Two and the Epilogue share Muara, and the Prologue is next door. `spread()` pushes
-  markers closer than 34 px apart at the current scale, so all three stay tappable. The
+- The map frames every marker and every point of every act's river (`FRAMED`), so a lit
+  river is never off screen.
+- Act Two and the Epilogue share Muara. `spread()` pushes
+  markers closer than 34 px apart at the current scale, so both stay tappable. The
   always-on "Start here" pill shows only in the side layout; on portrait screens it covered
   them, and the panel has Start reading.
 

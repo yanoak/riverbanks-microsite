@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { EDITION } from '$lib/comic/edition';
-	import { badge, split } from '$lib/comic/chapters';
-	import { bounds, frame, layout, MARKERS } from '$lib/comic/map';
+	import { split } from '$lib/comic/chapters';
+	import { bounds, frame, FRAMED, layout, MARKERS, onMap, STOPS } from '$lib/comic/map';
 	import { intro } from '$lib/content/intro';
 	import { GET_INVOLVED_URL } from '$lib/site';
 	import MapStage from '$lib/components/MapStage.svelte';
@@ -21,6 +21,8 @@
 	const fold = paragraphs.slice(0, 2);
 	const rest = paragraphs.slice(2);
 	const start = `/p/${EDITION.chapters[0].first}`;
+	// The list matches the map: one row per stop, so the Prologue and Act One are one row.
+	const stops = onMap(EDITION, STOPS, MARKERS);
 
 	// Until the page has measured itself (and when prerendered), assume a laptop.
 	let vw = $state(1440);
@@ -32,7 +34,7 @@
 	let hot = $state<number | null>(null);
 
 	const mode = $derived(layout(vw, vh));
-	const box = bounds(MARKERS, 70);
+	const box = bounds(FRAMED, 50);
 	// The map frames the markers in the space the header and the panel leave.
 	const framed = $derived.by(() => {
 		const free =
@@ -117,24 +119,24 @@
 			>
 		</h2>
 		<ol class="chapters" aria-labelledby="chapters">
-			{#each EDITION.chapters as c, i (c.first)}
-				{@const t = split(c.title)}
+			{#each stops as s (s.key)}
 				<li>
 					<a
 						class="chapter"
-						class:hot={hot === c.first}
-						href="/p/{c.first}"
-						onpointerenter={() => (hot = c.first)}
+						class:hot={hot === s.key}
+						href="/p/{s.key}"
+						onpointerenter={() => (hot = s.key)}
 						onpointerleave={() => (hot = null)}
-						onfocus={() => (hot = c.first)}
+						onfocus={() => (hot = s.key)}
 						onblur={() => (hot = null)}
 					>
-						<span class="badge" aria-hidden="true">{badge(i)}</span>
+						<span class="badge" aria-hidden="true">{s.badge}</span>
 						<span class="name"
-							><strong>{t.name}</strong>{#if t.sub}<span class="sub">{` · ${t.sub}`}</span
+							><strong>{split(s.title).name}</strong>{#if s.sub}<span class="sub"
+									>{` · ${s.sub}`}</span
 								>{/if}</span
 						>
-						<span class="page">p{c.first}</span>
+						<span class="page">p{s.key}</span>
 					</a>
 				</li>
 			{/each}
@@ -275,7 +277,7 @@
 	}
 	.chapter {
 		display: grid;
-		grid-template-columns: 2.1rem 1fr auto;
+		grid-template-columns: 2.6rem 1fr auto;
 		align-items: center;
 		gap: 0.75rem;
 		padding: 0.45rem 0.6rem;
@@ -289,11 +291,13 @@
 	}
 	.badge {
 		display: grid;
-		width: 1.65rem;
+		min-width: 1.65rem;
+		justify-self: start;
+		padding: 0 0.3rem;
 		height: 1.65rem;
 		place-items: center;
 		border: 2px solid var(--color-ink);
-		border-radius: 50%;
+		border-radius: 999px;
 		background: var(--color-signal);
 		font-size: 0.7rem;
 		font-weight: 600;

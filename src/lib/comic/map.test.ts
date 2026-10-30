@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { EDITION, type Edition } from './edition';
 import {
 	bounds,
+	FRAMED,
+	pathPoints,
+	RIVERS,
 	frame,
 	layout,
 	MAP,
 	MARKERS,
-	PLACES,
+	STOPS,
 	project,
 	spread,
 	toScreen,
@@ -25,21 +28,13 @@ const edition: Edition = {
 	]
 };
 
-describe('MARKERS', () => {
-	it('has a marker for every chapter, and none for anything else', () => {
-		const firsts = EDITION.chapters.map((c) => c.first).sort((a, b) => a - b);
-		expect(
-			Object.keys(MARKERS)
-				.map(Number)
-				.sort((a, b) => a - b)
-		).toEqual(firsts);
+describe('STOPS', () => {
+	it('puts every chapter in exactly one stop, in reading order', () => {
+		expect(STOPS.flatMap((s) => s.chapters)).toEqual(EDITION.chapters.map((c) => c.first));
 	});
-});
 
-describe('PLACES', () => {
-	it('gives every marker a river the map has, or none', () => {
-		for (const p of Object.values(PLACES))
-			if (p.river) expect(Object.keys(meta.rivers)).toContain(p.river);
+	it('gives every stop a river the map has, or none', () => {
+		for (const s of STOPS) if (s.river) expect(Object.keys(meta.rivers)).toContain(s.river);
 	});
 
 	it('puts every marker on the map', () => {
@@ -49,6 +44,10 @@ describe('PLACES', () => {
 			expect(m.y).toBeGreaterThanOrEqual(0);
 			expect(m.y).toBeLessThanOrEqual(meta.h);
 		}
+	});
+
+	it('starts the Prologue and Act One together, at the mouth of the Sunda River', () => {
+		expect(STOPS[0]).toMatchObject({ chapters: [4, 6], river: 'north-sunda' });
 	});
 });
 
@@ -106,22 +105,61 @@ describe('spread', () => {
 });
 
 describe('onMap', () => {
-	it('lists the markers in reading order, whatever their order on the map', () => {
-		const at = { 7: { x: 150, y: 60 }, 3: { x: 400, y: 200 }, 4: { x: 300, y: 100 } };
-		expect(onMap(edition, at).map((m) => m.first)).toEqual([3, 4, 7]);
+	const stops = [
+		{ chapters: [3, 4], name: 'Prologue & Act One', where: 'Here', river: null },
+		{ chapters: [7], where: 'There', river: null }
+	];
+
+	it('gives one marker per stop, keyed by its first page, a combined stop named as one', () => {
+		const at = { 3: { x: 300, y: 150 }, 7: { x: 10, y: 20 } };
+		expect(onMap(edition, stops, at)).toEqual([
+			{
+				key: 3,
+				title: 'Prologue & Act One',
+				sub: '',
+				where: 'Here',
+				river: null,
+				badge: 'P·I',
+				x: 300,
+				y: 150
+			},
+			{ key: 7, title: 'Epilogue', sub: '', where: 'There', river: null, badge: 'E', x: 10, y: 20 }
+		]);
 	});
 
-	it('leaves out a chapter without a marker, and carries the title and position', () => {
-		expect(onMap(edition, { 3: { x: 300, y: 150 } })).toEqual([
-			{ title: 'Prologue', first: 3, x: 300, y: 150 }
-		]);
+	it('splits a single chapter’s title, and leaves out a stop without a marker', () => {
+		const titled: Edition = { ...edition, chapters: [{ title: 'Act Two: Currents', first: 3 }] };
+		const one = [{ chapters: [3], where: 'Muara', river: null }];
+		expect(onMap(titled, one, { 3: { x: 1, y: 2 } })[0]).toMatchObject({
+			title: 'Act Two: Currents',
+			sub: 'Currents'
+		});
+		expect(onMap(titled, one, {})).toEqual([]);
 	});
 });
 
 describe('bounds', () => {
 	it('is the box around the markers, padded on every side', () => {
 		const at = { 1: { x: 100, y: 50 }, 2: { x: 300, y: 150 }, 3: { x: 200, y: 90 } };
-		expect(bounds(at, 10)).toEqual({ x: 90, y: 40, w: 220, h: 120 });
+		expect(bounds(Object.values(at), 10)).toEqual({ x: 90, y: 40, w: 220, h: 120 });
+	});
+});
+
+describe('pathPoints', () => {
+	it('reads the points of a path in absolute units', () => {
+		expect(pathPoints('M10 20l5-3 -2 4')).toEqual([
+			{ x: 10, y: 20 },
+			{ x: 15, y: 17 },
+			{ x: 13, y: 21 }
+		]);
+		expect(pathPoints('')).toEqual([]);
+	});
+
+	it('frames the markers and all of every river, so a lit river is never off screen', () => {
+		const box = bounds(FRAMED, 0);
+		const kapuas = pathPoints(RIVERS['north-sunda'].land)[0];
+		expect(kapuas.y).toBeLessThanOrEqual(box.y + box.h);
+		expect(kapuas.x).toBeLessThanOrEqual(box.x + box.w);
 	});
 });
 
