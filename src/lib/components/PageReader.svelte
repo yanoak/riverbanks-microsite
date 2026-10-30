@@ -5,8 +5,9 @@
 	import 'photoswipe/style.css';
 	import { chapterAt, EDITION, PAGES, pageSrc } from '$lib/comic/edition';
 	import { book, label, ticks } from '$lib/comic/reader';
+	import { pageUrl, saveName, shareFor, shareMode } from '$lib/comic/share';
 
-	let { start }: { start: number } = $props();
+	let { start, origin }: { start: number; origin: string } = $props();
 
 	const pages = book(EDITION);
 	const marks = ticks(EDITION);
@@ -25,11 +26,16 @@
 	let hint = $state(false);
 	let canFullscreen = $state(false);
 	let fullscreen = $state(false);
+	/** The Copy link / Save page menu, for browsers without a share sheet. */
+	let sharing = $state<'page' | 'home' | null>(null);
+	let copied = $state<boolean | null>(null);
 
 	let pswp = $state.raw<PhotoSwipe>();
 	let host: HTMLElement;
 	let controls: HTMLElement;
 	let menu: HTMLSelectElement;
+	let shareButton: HTMLButtonElement;
+	let shareMenu = $state<HTMLElement>();
 
 	const slides: SlideData[] = [
 		...pages.map((p) => ({
@@ -55,6 +61,7 @@
 				<h2>Riverbanks Volume I</h2>
 				${credits}
 				<a class="home" href="/">← Back to Riverbanks</a>
+				<button class="share" type="button">Share Riverbanks</button>
 			</div>`;
 	}
 
@@ -72,6 +79,7 @@
 		}, 4000);
 	}
 	function hide() {
+		closeShare(false);
 		clearTimeout(idle);
 		shown = false;
 		if (controls.contains(document.activeElement)) pswp?.element?.focus();
@@ -99,6 +107,51 @@
 		}
 	}
 
+	// The share sheet where there is one; it shares the page on screen, not the one opened.
+	async function share(what: 'page' | 'home') {
+		const target =
+			what === 'page'
+				? { ...shareFor(EDITION, page), url: pageUrl(origin, page) }
+				: { title: 'Riverbanks', text: 'A climate fiction comic by Seapunk Studios.', url: origin };
+		if (shareMode(navigator) === 'native') {
+			try {
+				await navigator.share(target);
+				return shareButton.focus();
+			} catch (err) {
+				if ((err as Error).name === 'AbortError') return shareButton.focus();
+			}
+		}
+		show();
+		sharing = what;
+		copied = null;
+		await tick();
+		shareMenu?.querySelector<HTMLElement>('[role=menuitem]')?.focus();
+	}
+	function closeShare(refocus = true) {
+		if (!sharing) return;
+		sharing = null;
+		if (refocus) shareButton.focus();
+	}
+	async function copyLink() {
+		try {
+			await navigator.clipboard.writeText(sharing === 'home' ? origin : pageUrl(origin, page));
+			copied = true;
+		} catch {
+			copied = false;
+		}
+	}
+	function shareMenuKeys(e: KeyboardEvent) {
+		if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+		e.preventDefault();
+		const items = [...shareMenu!.querySelectorAll<HTMLElement>('[role=menuitem]')];
+		const at = items.indexOf(document.activeElement as HTMLElement);
+		items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+	}
+	function outside(e: PointerEvent) {
+		const t = e.target as Node;
+		if (sharing && !shareMenu?.contains(t) && !shareButton.contains(t)) closeShare(false);
+	}
+
 	async function openMenu() {
 		show();
 		await tick();
@@ -113,7 +166,8 @@
 	function keys(e: KeyboardEvent) {
 		if (e.metaKey || e.ctrlKey || e.altKey) return;
 		if (e.key === 'Escape') {
-			if (shown) hide();
+			if (sharing) closeShare();
+			else if (shown) hide();
 			return;
 		}
 		const t = e.target as HTMLElement;
@@ -149,6 +203,10 @@
 			case 'M':
 				done();
 				return openMenu();
+			case 's':
+			case 'S':
+				done();
+				return share('page');
 		}
 	}
 
@@ -237,6 +295,11 @@
 			}
 		});
 
+		// The end card is PhotoSwipe's HTML, so its share button is wired up from here.
+		host.addEventListener('click', (e) => {
+			if ((e.target as HTMLElement).closest('.reader-end .share')) share('home');
+		});
+
 		p.init();
 		pswp = p;
 		p.element?.focus();
@@ -255,7 +318,7 @@
 	<title>{where} · Riverbanks</title>
 </svelte:head>
 
-<svelte:window onkeydown={keys} />
+<svelte:window onkeydown={keys} onpointerdown={outside} />
 
 <div class="reader" bind:this={host}>
 	<!-- Until PhotoSwipe takes over (and without JavaScript), the page as a plain image. -->
@@ -298,6 +361,25 @@
 					<option value={m.first}>{m.title}</option>
 				{/each}
 			</select>
+			<button
+				class="icon"
+				bind:this={shareButton}
+				aria-label="Share this page"
+				aria-haspopup="menu"
+				aria-expanded={sharing !== null}
+				onclick={() => (sharing ? closeShare() : share('page'))}
+			>
+				<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+					<path
+						d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 11v9h14v-9"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
 			{#if canFullscreen}
 				<button
 					class="icon"
@@ -307,6 +389,29 @@
 				>
 			{/if}
 		</div>
+
+		{#if sharing}
+			<div
+				class="share-menu"
+				role="menu"
+				aria-label="Share"
+				tabindex="-1"
+				bind:this={shareMenu}
+				onkeydown={shareMenuKeys}
+			>
+				<button role="menuitem" onclick={copyLink}>
+					{copied === true ? '✓ Link copied' : copied === false ? 'Could not copy' : 'Copy link'}
+				</button>
+				{#if sharing === 'page'}
+					<a
+						role="menuitem"
+						href={pageSrc(page, 'jpg', v)}
+						download={saveName(page)}
+						onclick={() => closeShare()}>Save page (JPEG)</a
+					>
+				{/if}
+			</div>
+		{/if}
 
 		<div class="bar bottom">
 			<button
@@ -408,6 +513,38 @@
 		line-height: 1;
 		text-decoration: none;
 		cursor: pointer;
+	}
+	.icon svg {
+		display: block;
+	}
+	.share-menu {
+		position: absolute;
+		top: calc(max(0.5rem, env(safe-area-inset-top)) + 3.5rem);
+		right: max(0.75rem, env(safe-area-inset-right));
+		display: flex;
+		flex-direction: column;
+		min-width: 12rem;
+		border-radius: 0.5rem;
+		background: var(--color-paper);
+		box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+		color: var(--color-ink);
+		padding: 0.35rem;
+		pointer-events: auto;
+	}
+	.share-menu [role='menuitem'] {
+		border-radius: 0.3rem;
+		color: inherit;
+		font: inherit;
+		padding: 0.7rem 0.9rem;
+		text-align: left;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.share-menu [role='menuitem']:hover,
+	.share-menu [role='menuitem']:focus-visible {
+		background: rgb(28 25 23 / 0.08);
+		outline: 2px solid var(--color-signal);
+		outline-offset: -2px;
 	}
 	.icon:disabled {
 		opacity: 0.3;
@@ -519,6 +656,12 @@
 	}
 	:global(.reader-end a) {
 		color: inherit;
+	}
+	:global(.reader-end .share) {
+		color: inherit;
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
 	}
 	:global(.reader-end .home) {
 		border-radius: 999px;

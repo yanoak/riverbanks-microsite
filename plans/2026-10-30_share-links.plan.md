@@ -67,12 +67,18 @@ reader's current page. The end card shares the home page.
 
 ## Tasks
 
-- [ ] `share.ts`: the share text, the canonical URL and the meta for a page, with tests first
-- [ ] Origin into `+layout.server.ts`; `/p/[n]` head gets the Open Graph and Twitter tags
-- [ ] `comic-pages.sh` writes `NN.jpg` and `NN-card.jpg`; rerun it on the 30 Oct export
-- [ ] Share button in the reader's top bar: share sheet, else the Copy link / Save page menu
-- [ ] `S` key opens Share; "Share Riverbanks" on the end card
+- [x] `share.ts`: the share text, the canonical URL and the meta for a page, with tests first
+- [x] Origin into `+layout.server.ts`; `/p/[n]` head gets the Open Graph and Twitter tags
+- [x] `comic-pages.sh` writes `NN.jpg` and `NN-card.jpg`; rerun it on the 30 Oct export
+- [x] Share button in the reader's top bar: share sheet, else the Copy link / Save page menu
+- [x] `S` key opens Share; "Share Riverbanks" on the end card
 - [ ] Preview deploy; Verification on an iPad, in WhatsApp and LINE
+      Desktop Chrome, 30 Oct (menu path forced by hiding `navigator.share`): `S` opens the menu
+      with focus on Copy link; Enter copies `…/p/15` ("✓ Link copied"); ↓ reaches Save page
+      (`riverbanks-p15.jpg`, 200 image/jpeg); Esc closes it and focus returns to Share. After
+      turning to p20 the link and file follow. The end card's Share Riverbanks copies the home
+      URL. The prerendered `/p/26` carries the card meta. No console errors. Cards add 25 MB:
+      `static/comic` is now 51 MB
 
 ## UI mockups (ASCII)
 
@@ -133,12 +139,12 @@ End card: under "← Back to Riverbanks", a second link "Share Riverbanks ⇪".
 
 ## Test list (TDD)
 
-- [ ] `pageUrl(origin, 26)` is `https://riverbanks.lol/p/26`, with no trailing slash — unit — `src/lib/comic/share.test.ts`
-- [ ] `shareFor(EDITION-like fixture, page)` gives the title "Riverbanks · <act>" and the text "Page N of Riverbanks Volume I…" — unit — `share.test.ts`
-- [ ] the meta for a page points `og:image` at `/comic/NN-card.jpg` with the edition version, at 1200×630 — unit — `share.test.ts`
-- [ ] `saveName(26)` is `riverbanks-p26.jpg` — unit — `share.test.ts`
-- [ ] `pageSrc` with the `jpg` and `card` variants: two-digit numbers, version query — unit — `src/lib/comic/edition.test.ts`
-- [ ] `shareMode(nav)` is `'native'` when `navigator.share` exists, else `'menu'` — unit — `share.test.ts`
+- [x] `pageUrl(origin, 26)` is `https://riverbanks.lol/p/26`, with no trailing slash — unit — `src/lib/comic/share.test.ts`
+- [x] `shareFor(EDITION-like fixture, page)` gives the title "Riverbanks · <act>" and the text "Page N of Riverbanks Volume I…" — unit — `share.test.ts`
+- [x] the meta for a page points `og:image` at `/comic/NN-card.jpg` with the edition version, at 1200×630 — unit — `share.test.ts`
+- [x] `saveName(26)` is `riverbanks-p26.jpg` — unit — `share.test.ts`
+- [x] `pageSrc` with the `jpg` and `card` variants: two-digit numbers, version query — unit — `src/lib/comic/edition.test.ts`
+- [x] `shareMode(nav)` is `'native'` when `navigator.share` exists, else `'menu'` — unit — `share.test.ts`
 
 ## Verification
 

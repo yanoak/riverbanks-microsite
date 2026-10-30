@@ -75,4 +75,9 @@ describe('pageSrc', () => {
 		expect(pageSrc(3, 800, 'abc123')).toBe('/comic/03-800.webp?v=abc123');
 		expect(pageSrc(47, 1600, 'abc123')).toBe('/comic/47-1600.webp?v=abc123');
 	});
+
+	it('names the JPEG and the share card', () => {
+		expect(pageSrc(3, 'jpg', 'abc123')).toBe('/comic/03.jpg?v=abc123');
+		expect(pageSrc(26, 'card', 'abc123')).toBe('/comic/26-card.jpg?v=abc123');
+	});
 });

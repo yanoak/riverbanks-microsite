@@ -3,9 +3,10 @@
 #
 #   scripts/comic-pages.sh "~/Downloads/Compilation Lo Res — Riverbanks.pdf"
 #
-# Writes static/comic/NN-1600.webp and NN-800.webp for every page, replacing the previous
-# edition, and src/lib/comic/pages.json with the page count, aspect ratio and a short hash of
-# the PDF (the reader puts it on image URLs, so a new edition is never served from cache).
+# Writes, for every page and replacing the previous edition: static/comic/NN-1600.webp and
+# NN-800.webp for the reader, NN.jpg (1200 px) for saving and sharing as a photo, and
+# NN-card.jpg, the 1200×630 link card: the page on a blurred, darkened crop of itself. Then
+# src/lib/comic/pages.json with the page count, aspect ratio and a short hash of the PDF (the reader puts it on image URLs, so a new edition is never served from cache).
 # Export the PDF from the editor with its watermark off; the site draws its own.
 # Needs pdftoppm (poppler), cwebp and magick. A 47-page A1 PDF takes about 7 minutes.
 set -euo pipefail
@@ -29,6 +30,11 @@ for png in "$work"/p-*.png; do
 	num=$(printf '%02d' "$n")
 	cwebp -quiet -q 80 "$png" -o "$out/$num-1600.webp"
 	cwebp -quiet -q 78 -resize 800 0 "$png" -o "$out/$num-800.webp"
+	magick "$png" -resize 1200x -strip -quality 82 -interlace JPEG "$out/$num.jpg"
+	magick "$png" \
+		\( -clone 0 -resize 1200x630^ -gravity center -extent 1200x630 -blur 0x40 -fill black -colorize 45% \) \
+		\( -clone 0 -resize x630 \) -delete 0 -gravity center -composite \
+		-strip -quality 82 "$out/$num-card.jpg"
 done
 
 first=$(ls "$work"/p-*.png | head -1)

@@ -74,6 +74,10 @@ export function chapterAt(edition: Edition, page: number): Group {
 	return groups.findLast((g) => g.first <= page) ?? groups[0];
 }
 
-export function pageSrc(page: number, width: 800 | 1600, version: string): string {
-	return `/comic/${String(page).padStart(2, '0')}-${width}.webp?v=${version}`;
+/** A page's image: WebP for reading, a 1200 px JPEG for saving, or its 1200×630 share card. */
+export function pageSrc(page: number, size: 800 | 1600 | 'jpg' | 'card', version: string): string {
+	const n = String(page).padStart(2, '0');
+	const file =
+		size === 'jpg' ? `${n}.jpg` : size === 'card' ? `${n}-card.jpg` : `${n}-${size}.webp`;
+	return `/comic/${file}?v=${version}`;
 }
