@@ -75,7 +75,10 @@ glowing marker per chapter and Sam's welcome over it.
   same flow routing that draws the map's rivers. It writes the paths to `map.json`: today's
   course and the drowned course separately.
 - Hovering or focusing a chapter (or its marker) lights its river: yellow on an ink halo, the
-  drowned stretch dotted. The pill adds where the act happens.
+  drowned stretch the same, solid. The pill adds where the act happens.
+  - The first version dotted the drowned stretch. Yan compared dots against aqua, white, amber
+    and brick for it (`art/drowned-river-colours/`) and chose plain solid yellow (30 Oct).
+  - The paths stay separate in `map.json` in case that changes.
 - The North Sunda River lights as a whole basin (Yan, 30 Oct): every drawn river that drains
   to its mouth, thinner than the main stem. That takes in the Chao Phraya system, rivers from
   north-east Thailand and Cambodia, the Malay Peninsula and Sumatra, and the Kapuas.

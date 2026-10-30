@@ -97,7 +97,8 @@
 		style:width="{MAP.w * frame.scale}px"
 	/>
 
-	<!-- The acts' rivers, lit one at a time: today's course solid, the drowned one dashed. -->
+	<!-- The acts' rivers, lit one at a time, today's course and the drowned one alike (Yan chose
+	     one colour over dots or a second colour, 30 Oct; the comparison is in art/). -->
 	<svg
 		class="rivers"
 		viewBox="0 0 {MAP.w} {MAP.h}"
@@ -197,25 +198,18 @@
 		stroke-width: 8px;
 		stroke-opacity: 0.85;
 	}
-	.rivers .land {
-		stroke: var(--color-signal);
-		stroke-width: 4.5px;
-	}
+	.rivers .land,
 	.rivers .drowned {
 		stroke: var(--color-signal);
-		stroke-width: 4px;
-		stroke-dasharray: 2px 7px;
+		stroke-width: 4.5px;
 	}
 	.rivers .halo.trib {
 		stroke-width: 5px;
 		stroke-opacity: 0.7;
 	}
-	.rivers .land.trib {
-		stroke-width: 2.5px;
-	}
+	.rivers .land.trib,
 	.rivers .drowned.trib {
 		stroke-width: 2.5px;
-		stroke-dasharray: 1.5px 5px;
 	}
 	.marker {
 		position: absolute;
