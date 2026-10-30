@@ -48,7 +48,7 @@ glowing marker per chapter and Sam's welcome over it.
 **Two layouts, picked by the screen's shape.** *Side*: width ≥ 900 px and wider than tall (a
 laptop, an iPad held landscape). *Bottom*: everything else (iPad portrait, phones).
 - **Side:** a translucent panel 460 px wide on the left, below the header. It holds the kicker,
-  the title, Sam's first two paragraphs, Start reading, the chapter list, then the rest of the
+  the title, Sam's first two paragraphs, Start reading and Get involved, the chapter list, then the rest of the
   intro. It scrolls inside itself if it's taller than the screen.
 - **Bottom:**
   - On a tablet, a panel across the bottom with the welcome and the chapters as two columns
@@ -76,10 +76,15 @@ and blur. A hot marker grows, glows harder and shows its title pill; a hot row i
 Prologue's "Start here" pill always shows. The mockup used `:has()`, which works, but state also
 covers keyboard focus and is testable.
 
+**Get involved is a prominent call to action** (Yan, 30 Oct):
+- it's a second button beside Start reading in the header, the panel and the menu, outlined so
+  Start reading stays first;
+- it points at `GET_INVOLVED_URL` in `src/lib/site.ts`, the F4 form once it exists and something
+  interim until then (open question).
+
 **Header.** `SiteHeader.svelte`, shared by `/` and `/credits`: the wordmark (home), Chapters,
-Credits, and Start reading.
-- Cast and Get involved are in the design but behind constants until F5 and F4 land, like the
-  newsletter box.
+Credits, Get involved and Start reading.
+- Cast is in the design but behind a constant until F5 lands, like the newsletter box.
 - Below 900 px: the wordmark, Start reading (on tablets only) and a hamburger. The hamburger
   opens a full-screen menu (board 13) that closes with Esc, the ✕, or a link.
 - On `/`, Chapters scrolls the panel to its list and focuses the first chapter. Elsewhere it
@@ -103,7 +108,7 @@ no longer carries the credits.
 - [x] First version: map band on top, text below (`7cc1d31`), superseded by the redesign
 - [x] Designs for the redesign: boards 10–14 on the mockup canvas, approved by Yan
 - [ ] `frame()` and `bounds()` in `map.ts`, tests first; drop `CROP` and `place()`
-- [ ] `SiteHeader.svelte`: links, hamburger and the full-screen menu
+- [ ] `SiteHeader.svelte`: links, Get involved, hamburger and the full-screen menu
 - [ ] Full-screen `MapStage.svelte` with markers in pixels, hot state, and placement mode moved in
 - [ ] Landing: side panel and bottom panel and sheet, chapter list and chips sharing `hot`, Sam's
       intro
@@ -215,6 +220,8 @@ On the preview:
 
 - [ ] Where does each act happen on the map? Yan places them (placement mode).
 - [ ] The intro's "here" link: the F4 form once it exists; until then, plain text.
+- [ ] Get involved before F4 exists: where does it point? Sam's Google Form directly, or an
+      email address?
 - [ ] Sam's "will be released here … in November 2026" paragraph: reword for launch? Sam's call.
 
 ## Outcome
