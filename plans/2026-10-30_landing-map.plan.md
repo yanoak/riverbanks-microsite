@@ -107,13 +107,24 @@ no longer carries the credits.
 - [x] Dev-only `/?place`: drag markers, copy positions (first version)
 - [x] First version: map band on top, text below (`7cc1d31`), superseded by the redesign
 - [x] Designs for the redesign: boards 10–14 on the mockup canvas, approved by Yan
-- [ ] `frame()` and `bounds()` in `map.ts`, tests first; drop `CROP` and `place()`
-- [ ] `SiteHeader.svelte`: links, Get involved, hamburger and the full-screen menu
-- [ ] Full-screen `MapStage.svelte` with markers in pixels, hot state, and placement mode moved in
-- [ ] Landing: side panel and bottom panel and sheet, chapter list and chips sharing `hot`, Sam's
+- [x] `frame()` and `bounds()` in `map.ts`, tests first; drop `CROP` and `place()`
+- [x] `SiteHeader.svelte`: links, Get involved, hamburger and the full-screen menu
+- [x] Full-screen `MapStage.svelte` with markers in pixels, hot state, and placement mode moved in
+- [x] Landing: side panel and bottom panel and sheet, chapter list and chips sharing `hot`, Sam's
       intro
-- [ ] `/credits` page; credits out of the home page
+- [x] `/credits` page; credits out of the home page
 - [ ] Yan places the markers; paste them in
+      Desktop Chrome, 30 Oct:
+      - 1522×757: side layout, every marker clear of the panel; hovering Act Two's row lights
+        its marker and pill, and focusing Act Three's row does the same.
+      - In iframes: 1180×820 gets the side layout. 820×1180 has the bottom panel with chapter
+        buttons, and every marker sits above it. 390×844 has the sheet with title, ¶1, both
+        buttons and the chip row, ¶2 below.
+      - The hamburger opens the menu with focus on Start reading.
+      - `/#chapters` focuses the first chapter. `/credits` stacks on a phone.
+      - No console errors.
+      Fixed on the way: chips squashed to zero height in the scrolling sheet, and the space
+      before "·" lost. Not checked: real touch, Safari's `backdrop-filter`, rotating an iPad
 - [ ] Preview deploy; Verification on the iPad and a phone
 
 ## UI mockups (ASCII)
@@ -180,12 +191,12 @@ Chapters & map, Credits, and the licence line at the bottom.
 
 - [x] every chapter has a marker, and markers come out in reading order — unit — `src/lib/comic/map.test.ts`
 - [x] `intro()`: frontmatter, paragraphs, italics, links, the TODO link — unit — `src/lib/content/intro.test.ts`
-- [ ] `bounds(markers, pad)` is the padded box around the markers, in map units — unit — `map.test.ts`
-- [ ] `frame()` fits the markers' box inside the free rectangle and centres it — unit — `map.test.ts`
-- [ ] `frame()` pulls the map's edges back to the screen's when the map is bigger than the screen, so no gap shows — unit — `map.test.ts`
-- [ ] `frame()` with a free rectangle wider than the box is limited by height, and the other way round — unit — `map.test.ts`
-- [ ] `toScreen(point, frame)` turns map units into pixels — unit — `map.test.ts`
-- [ ] `layout(w, h)` is `'side'` for 1440×900 and 1180×820, `'bottom'` for 820×1180 and 390×844 — unit — `map.test.ts`
+- [x] `bounds(markers, pad)` is the padded box around the markers, in map units — unit — `map.test.ts`
+- [x] `frame()` fits the markers' box inside the free rectangle and centres it — unit — `map.test.ts`
+- [x] `frame()` pulls the map's edges back to the screen's when the map is bigger than the screen, so no gap shows — unit — `map.test.ts`
+- [x] `frame()` with a free rectangle wider than the box is limited by height, and the other way round — unit — `map.test.ts`
+- [x] `toScreen(point, frame)` turns map units into pixels — unit — `map.test.ts`
+- [x] `layout(w, h)` is `'side'` for 1440×900 and 1180×820, `'bottom'` for 820×1180 and 390×844 — unit — `map.test.ts`
 
 ## Verification
 

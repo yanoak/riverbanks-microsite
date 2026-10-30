@@ -1,7 +1,12 @@
 <script lang="ts">
-	import { EDITION, PAGES, pageSrc } from '$lib/comic/edition';
+	import { onMount, tick } from 'svelte';
+	import { EDITION } from '$lib/comic/edition';
+	import { badge, split } from '$lib/comic/chapters';
+	import { bounds, frame, layout, MARKERS } from '$lib/comic/map';
 	import { intro } from '$lib/content/intro';
-	import MapHero from '$lib/components/MapHero.svelte';
+	import { GET_INVOLVED_URL } from '$lib/site';
+	import MapStage from '$lib/components/MapStage.svelte';
+	import SiteHeader from '$lib/components/SiteHeader.svelte';
 	import introMd from '../content/intro.md?raw';
 
 	let { data } = $props();
@@ -10,15 +15,68 @@
 	const description =
 		'Riverbanks, a climate fiction series by Seapunk Studios about ecoarchic institutions. Read the Premiere Edition of Volume I online.';
 
-	// The existing newsletter's signup page. Until it is set, the keep-in-touch box is hidden.
-	const NEWSLETTER_URL = '';
-	// Where the intro's "reach out here" goes. Until there is somewhere (F4's form), plain text.
-	const REACH_OUT_URL: string | null = null;
-
-	// Sam's intro, verbatim. Its closing licence line is left out: the licence line below says it.
-	const paragraphs = intro(introMd, REACH_OUT_URL).filter((p) => !p.startsWith('©'));
+	// Sam's intro, verbatim; "reach out … here" goes to the get-involved form. Its closing licence
+	// line is left out: the licence line at the end of the panel says it.
+	const paragraphs = intro(introMd, GET_INVOLVED_URL).filter((p) => !p.startsWith('©'));
 	const fold = paragraphs.slice(0, 2);
 	const rest = paragraphs.slice(2);
+	const start = `/p/${EDITION.chapters[0].first}`;
+
+	// Until the page has measured itself (and when prerendered), assume a laptop.
+	let vw = $state(1440);
+	let vh = $state(900);
+	let headerHeight = $state(72);
+	let panel: HTMLElement;
+	let edge = $state({ right: 516, top: 900 });
+	let measured = $state(false);
+	let hot = $state<number | null>(null);
+
+	const mode = $derived(layout(vw, vh));
+	const box = bounds(MARKERS, 35);
+	// The map frames the markers in the space the header and the panel leave.
+	const framed = $derived.by(() => {
+		const free =
+			mode === 'side'
+				? {
+						x: edge.right + 24,
+						y: headerHeight + 24,
+						w: vw - edge.right - 48,
+						h: vh - headerHeight - 48
+					}
+				: { x: 16, y: headerHeight + 16, w: vw - 32, h: edge.top - headerHeight - 32 };
+		return frame(
+			{ w: vw, h: vh },
+			{ ...free, w: Math.max(free.w, 80), h: Math.max(free.h, 80) },
+			box
+		);
+	});
+
+	function measure() {
+		const r = panel.getBoundingClientRect();
+		edge = { right: r.right, top: r.top };
+		vw = window.innerWidth;
+		vh = window.innerHeight;
+		measured = true;
+	}
+
+	onMount(() => {
+		const seen = new ResizeObserver(measure);
+		seen.observe(panel);
+		window.addEventListener('resize', measure);
+		// The header's Chapters link: land on the list, not the top of the panel.
+		const toChapters = async () => {
+			if (location.hash !== '#chapters') return;
+			await tick();
+			panel.querySelector<HTMLElement>('.chapter')?.focus();
+		};
+		toChapters();
+		window.addEventListener('hashchange', toChapters);
+		return () => {
+			seen.disconnect();
+			window.removeEventListener('resize', measure);
+			window.removeEventListener('hashchange', toChapters);
+		};
+	});
 </script>
 
 <svelte:head>
@@ -33,181 +91,321 @@
 	<meta property="og:image:height" content="630" />
 	<meta property="og:image:alt" content="The Riverbanks posters and a page of the comic" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="theme-color" content="#1c1917" />
+	<meta name="theme-color" content="#f3ecdc" />
 </svelte:head>
 
-<main class="bg-paper text-ink">
-	<MapHero />
+<div class="landing" class:measured>
+	<MapStage frame={framed} width={vw} compact={vw < 600} bind:hot />
+	<SiteHeader overlay bind:height={headerHeight} />
 
-	<header class="intro">
+	<section class="panel {mode}" bind:this={panel} aria-labelledby="title">
 		<p class="kicker">Seapunk Studios presents</p>
-		<h1>Riverbanks</h1>
+		<h1 id="title">Riverbanks</h1>
 		{#each fold as p, i (i)}
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
-			<p>{@html p}</p>
+			<p class="welcome">{@html p}</p>
 		{/each}
 
-		<a class="start" href="/p/{EDITION.chapters[0].first}">Start reading →</a>
-		<p class="note">
-			Best read on a tablet held upright. Tap a glowing marker to start at that act.
-		</p>
-	</header>
+		<div class="ctas">
+			<a class="btn" href={start}>Start reading →</a>
+			<a class="btn ghost" href={GET_INVOLVED_URL} target="_blank" rel="noopener">Get involved ↗</a>
+		</div>
 
-	<section class="after more" aria-label="About Riverbanks">
-		{#each rest as p, i (i)}
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
-			<p>{@html p}</p>
-		{/each}
-	</section>
-
-	<nav class="after" aria-labelledby="chapters">
-		<h2 id="chapters">Chapters</h2>
-		<ol class="chapters">
-			{#each EDITION.chapters as c (c.first)}
-				<li><a href="/p/{c.first}">{c.title}</a></li>
+		<h2 class="label" id="chapters">
+			Chapters<span class="hint">
+				· {mode === 'side' ? 'hover' : 'tap'} to find them on the map</span
+			>
+		</h2>
+		<ol class="chapters" aria-labelledby="chapters">
+			{#each EDITION.chapters as c, i (c.first)}
+				{@const t = split(c.title)}
+				<li>
+					<a
+						class="chapter"
+						class:hot={hot === c.first}
+						href="/p/{c.first}"
+						onpointerenter={() => (hot = c.first)}
+						onpointerleave={() => (hot = null)}
+						onfocus={() => (hot = c.first)}
+						onblur={() => (hot = null)}
+					>
+						<span class="badge" aria-hidden="true">{badge(i)}</span>
+						<span class="name"
+							><strong>{t.name}</strong>{#if t.sub}<span class="sub">{` · ${t.sub}`}</span
+								>{/if}</span
+						>
+						<span class="page">p{c.first}</span>
+					</a>
+				</li>
 			{/each}
 		</ol>
-	</nav>
 
-	<section class="after" aria-labelledby="credits">
-		<h2 id="credits">Credits</h2>
-		{#if EDITION.credits}
-			<a
-				class="credits"
-				href={pageSrc(EDITION.credits, 1600, PAGES.version)}
-				target="_blank"
-				rel="noopener"
-			>
-				<img
-					src={pageSrc(EDITION.credits, 800, PAGES.version)}
-					width={PAGES.width}
-					height={PAGES.height}
-					alt="The Riverbanks credits board. Open full size."
-					loading="lazy"
-				/>
-			</a>
-		{/if}
+		<div class="more">
+			{#each rest as p, i (i)}
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
+				<p>{@html p}</p>
+			{/each}
+		</div>
+
+		<p class="licence">
+			Riverbanks Volume I · BKKCAW26 Premiere Edition · CC BY-NC, Seapunk Studios &amp;
+			collaborators 2026 · <a href="/credits">Credits</a> ·
+			<a href="https://seapunk.asia" target="_blank" rel="noopener">seapunk.asia</a>
+		</p>
 	</section>
-
-	{#if NEWSLETTER_URL}
-		<section class="after" aria-labelledby="keep-in-touch">
-			<h2 id="keep-in-touch">Keep in touch</h2>
-			<p>New essays, events and editions of Riverbanks go out in the Seapunk newsletter.</p>
-			<a class="start" href={NEWSLETTER_URL} target="_blank" rel="noopener"
-				>Subscribe to the newsletter →</a
-			>
-		</section>
-	{/if}
-
-	<p class="licence">
-		Riverbanks Volume I · BKKCAW26 Premiere Edition · CC BY-NC, Seapunk Studios &amp; collaborators
-		2026 · <a href="https://seapunk.asia" target="_blank" rel="noopener">seapunk.asia</a>
-	</p>
-
-	<footer
-		class="flex justify-between gap-4 bg-ink px-4 pt-3.5 pb-[calc(1rem+env(safe-area-inset-bottom))] font-pixel text-[15px] whitespace-nowrap text-paper sm:px-5 sm:text-xl"
-	>
-		<span>RIVERBANKS.LOL</span>
-		<span>SEAPUNK STUDIOS</span>
-	</footer>
-</main>
+</div>
 
 <style>
-	.intro,
-	.after {
-		width: min(100% - 2rem, 38rem);
-		margin-inline: auto;
+	.landing {
+		position: fixed;
+		inset: 0;
+		overflow: hidden;
+		background: #a9cac4;
+		color: var(--color-ink);
 		font-family: var(--font-sans);
-		font-size: 1.0625rem;
-		line-height: 1.6;
 	}
-	.intro {
-		padding: 3rem 0 2.5rem;
+	/* Markers wait for the page to measure itself, so they don't jump on a phone. */
+	.landing :global(.marker) {
+		opacity: 0;
+		transition: opacity 0.3s;
 	}
-	.intro p + p,
-	.more p + p {
-		margin-top: 0.9em;
+	.landing.measured :global(.marker) {
+		opacity: 1;
 	}
-	.intro p :global(a),
-	.more p :global(a) {
-		color: inherit;
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
+
+	.panel {
+		position: absolute;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		background: rgb(243 236 220 / 0.88);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 10px 40px rgb(28 25 23 / 0.18);
+		line-height: 1.5;
 	}
-	.note {
-		margin-top: 1rem;
-		font-size: 0.9rem;
-		font-weight: 300;
-		color: rgb(28 25 23 / 0.75);
+	.panel.side {
+		top: calc(4.5rem + 2rem);
+		bottom: 2rem;
+		left: 2rem;
+		width: 29rem;
+		padding: 2rem 1.9rem;
+		border-radius: 1rem;
+	}
+	.panel.bottom {
+		right: 1.5rem;
+		bottom: 1.5rem;
+		left: 1.5rem;
+		max-height: 48vh;
+		max-height: 48svh;
+		padding: 1.75rem 1.75rem 1.5rem;
+		border-radius: 1.1rem;
+	}
+
+	/* The panel scrolls; nothing in it should shrink to fit instead. */
+	.panel > :global(*) {
+		flex-shrink: 0;
 	}
 	.kicker {
 		font-family: var(--font-label);
-		font-size: 0.95rem;
-		letter-spacing: 0.06em;
+		font-size: 0.875rem;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--color-teal);
 	}
 	h1 {
+		margin: -0.2rem 0 0;
 		font-family: var(--font-display);
-		font-size: clamp(2.25rem, 11.5vw, 6rem);
+		font-size: 3.75rem;
+		font-weight: 400;
 		line-height: 0.95;
-		margin: 0.15em 0 0.2em;
 		text-transform: uppercase;
 	}
-	.start {
-		display: inline-block;
-		margin-top: 1.6rem;
+	.welcome,
+	.more p {
+		font-size: 1.0625rem;
+	}
+	.panel p :global(a) {
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
+	.ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.25rem;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		min-height: 3rem;
+		padding: 0 1.4rem;
+		border: 2px solid var(--color-ink);
 		border-radius: 999px;
 		background: var(--color-ink);
 		color: var(--color-paper);
-		padding: 0.7rem 1.4rem;
+		font-size: 1.0625rem;
 		font-weight: 600;
 		text-decoration: none;
-		cursor: pointer;
 	}
-	.start:focus-visible {
-		outline: 3px solid var(--color-teal);
-		outline-offset: 3px;
+	.btn.ghost {
+		background: var(--color-signal);
+		color: var(--color-ink);
 	}
-	.after {
-		padding: 1rem 0 3rem;
-	}
-	h2 {
-		font-family: var(--font-display);
-		font-size: 2rem;
+
+	.label {
+		margin-top: 0.75rem;
+		font-family: var(--font-label);
+		font-size: 0.8rem;
+		font-weight: 400;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		margin-bottom: 0.75rem;
+		color: #57534e;
+	}
+	.chapters {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 0 -0.6rem;
+	}
+	.chapter {
+		display: grid;
+		grid-template-columns: 2.1rem 1fr auto;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.45rem 0.6rem;
+		border-radius: 0.5rem;
+		color: inherit;
+		text-decoration: none;
+		transition: background 0.15s;
+	}
+	.chapter.hot {
+		background: rgb(28 25 23 / 0.08);
+	}
+	.badge {
+		display: grid;
+		width: 1.65rem;
+		height: 1.65rem;
+		place-items: center;
+		border: 2px solid var(--color-ink);
+		border-radius: 50%;
+		background: var(--color-signal);
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+	.name strong {
+		font-weight: 600;
+	}
+	.page {
+		font-size: 0.8rem;
+		color: #57534e;
+	}
+	.more {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		margin-top: 0.75rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgb(28 25 23 / 0.15);
 	}
 	.licence {
-		width: min(100% - 2rem, 38rem);
-		margin: 0 auto;
-		padding: 0 0 1.5rem;
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 		font-weight: 300;
-		color: rgb(28 25 23 / 0.75);
+		color: #44403c;
 	}
 	.licence a {
 		color: inherit;
 	}
-	.chapters {
-		display: grid;
-		gap: 0.35rem;
-	}
-	.chapters a {
-		color: inherit;
-		font-weight: 500;
-		text-underline-offset: 0.2em;
-	}
-	.chapters a:focus-visible {
+	.btn:focus-visible,
+	.chapter:focus-visible,
+	.panel a:focus-visible {
 		outline: 3px solid var(--color-teal);
 		outline-offset: 2px;
 	}
-	.credits img {
-		display: block;
-		width: 100%;
-		height: auto;
-		border-radius: 0.25rem;
-		box-shadow: 0 1px 6px rgb(28 25 23 / 0.18);
+
+	/* Bottom panel: the chapters as two columns of buttons. */
+	.bottom .chapters {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+		margin: 0;
+	}
+	.bottom .chapter {
+		grid-template-columns: auto 1fr;
+		gap: 0.6rem;
+		min-height: 2.75rem;
+		padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+		background: rgb(28 25 23 / 0.06);
+		font-size: 0.95rem;
+		line-height: 1.25;
+	}
+	.bottom .chapter.hot {
+		background: rgb(28 25 23 / 0.14);
+	}
+	.bottom .page {
+		display: none;
+	}
+	.bottom h1 {
+		font-size: 3.25rem;
+	}
+
+	/* Phone: a sheet along the bottom edge, the chapters as a row of chips that scrolls. */
+	@media (max-width: 599px) {
+		.panel.bottom {
+			right: 0;
+			bottom: 0;
+			left: 0;
+			max-height: 46svh;
+			gap: 0.7rem;
+			padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+			border-radius: 1.25rem 1.25rem 0 0;
+		}
+		.bottom h1 {
+			font-size: 2.6rem;
+		}
+		.welcome,
+		.more p {
+			font-size: 1rem;
+		}
+		.ctas .btn {
+			flex: 1 1 0;
+			justify-content: center;
+			padding: 0 0.75rem;
+			font-size: 1rem;
+		}
+		/* The second paragraph waits below the chapters, so the sheet's first screen is the
+		   title, the welcome, the two buttons and the chips. */
+		.welcome + .welcome {
+			order: 1;
+		}
+		.more,
+		.licence {
+			order: 2;
+		}
+		.bottom .chapters {
+			display: flex;
+			flex-direction: row;
+			gap: 0.5rem;
+			margin: 0 -1.25rem;
+			padding: 0 1.25rem 0.25rem;
+			overflow-x: auto;
+			scrollbar-width: none;
+		}
+		.bottom .chapters li {
+			flex: none;
+		}
+		.bottom .chapter {
+			border-radius: 999px;
+			white-space: nowrap;
+		}
+		.bottom .sub,
+		.label .hint {
+			display: none;
+		}
 	}
 </style>
