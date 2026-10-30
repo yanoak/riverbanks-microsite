@@ -77,11 +77,21 @@ changing the field IDs):
 
 ## Tasks
 
-- [ ] Set up the Google Form (questions, title, publish) and record the field ids
-- [ ] `fields.ts` and `encode()`, tests first
-- [ ] `/get-involved`: three steps, Taro, progress, validation, thank-you
-- [ ] Get involved links point at `/get-involved`
+- [x] Set up the Google Form (questions, title, publish) and record the field ids
+      30 Oct: the eight questions added and the placeholder removed. The form is published,
+      accepting responses, and its public page now answers 200. All eight entry ids read
+      from that page match the decimal of the API's hex question ids.
+- [x] `fields.ts` and `encode()`, tests first
+- [x] `/get-involved`: three steps, Taro, progress, validation, thank-you
+- [x] Get involved links point at `/get-involved`
 - [ ] Preview deploy; Verification: a test response arrives in the form, and is deleted after
+      Desktop Chrome, 30 Oct, steps 1–4 up to Send:
+      - The empty check works, with focus on the first tile.
+      - Translate shows the language question.
+      - Back keeps the ticks, and Next keeps the text.
+      - A bad email gets an error, `aria-invalid` and focus.
+      - At 390 wide: one column, no sideways scroll. No console errors.
+      Not yet done: Send, which submits a real response (waiting on Yan's OK).
 
 ## UI mockups (ASCII)
 
@@ -126,12 +136,12 @@ Phone: one column of tiles, Taro smaller above the question, Next full width.
 
 ## Test list (TDD)
 
-- [ ] `encode()` puts each ticked interest under the interests entry, one value each — unit — `src/lib/form/fields.test.ts`
-- [ ] `encode()` sends "Other" as `__other_option__` with the text in `.other_option_response`, and nothing for an empty Other — unit — `fields.test.ts`
-- [ ] `encode()` leaves out empty answers, and sends Which language? only when Translate is ticked — unit — `fields.test.ts`
-- [ ] `encode()` sends the opt-in as its single option when ticked, nothing when not — unit — `fields.test.ts`
-- [ ] `check(step, answers)`: step 1 needs an interest; step 3 needs an email that looks like one — unit — `fields.test.ts`
-- [ ] the entry ids are the decimal of the questions' hex ids — unit — `fields.test.ts`
+- [x] `encode()` puts each ticked interest under the interests entry, one value each — unit — `src/lib/form/fields.test.ts`
+- [x] `encode()` sends "Other" as `__other_option__` with the text in `.other_option_response`, and nothing for an empty Other — unit — `fields.test.ts`
+- [x] `encode()` leaves out empty answers, and sends Which language? only when Translate is ticked — unit — `fields.test.ts`
+- [x] `encode()` sends the opt-in as its single option when ticked, nothing when not — unit — `fields.test.ts`
+- [x] `check(step, answers)`: step 1 needs an interest; step 3 needs an email that looks like one — unit — `fields.test.ts`
+- [x] the entry ids are the decimal of the questions' hex ids — unit — `fields.test.ts`
 
 ## Verification
 

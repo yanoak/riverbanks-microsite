@@ -112,9 +112,7 @@
 
 			<div class="ctas">
 				<a class="btn" href={start}>Start reading →</a>
-				<a class="btn ghost" href={GET_INVOLVED_URL} target="_blank" rel="noopener"
-					>Get involved ↗</a
-				>
+				<a class="btn ghost" href={GET_INVOLVED_URL}>Get involved →</a>
 			</div>
 
 			<h2 class="label" id="chapters">

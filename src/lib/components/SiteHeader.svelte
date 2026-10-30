@@ -10,7 +10,7 @@
 		/** Translucent, over the map (the landing page); otherwise solid paper. */
 		overlay?: boolean;
 		/** The page the header is on, for `aria-current`. */
-		current?: 'cast' | 'credits' | '';
+		current?: 'cast' | 'credits' | 'get-involved' | '';
 		height?: number;
 	} = $props();
 
@@ -41,7 +41,11 @@
 		<a class="link" href="/credits" aria-current={current === 'credits' ? 'page' : undefined}
 			>Credits</a
 		>
-		<a class="btn ghost" href={GET_INVOLVED_URL} target="_blank" rel="noopener">Get involved ↗</a>
+		<a
+			class="btn ghost"
+			href={GET_INVOLVED_URL}
+			aria-current={current === 'get-involved' ? 'page' : undefined}>Get involved</a
+		>
 		<a class="btn" href={start}>Start reading →</a>
 	</nav>
 
@@ -79,9 +83,7 @@
 	</div>
 	<nav aria-label="Site">
 		<a href={start} onclick={close}>Start reading <span aria-hidden="true">→</span></a>
-		<a href={GET_INVOLVED_URL} target="_blank" rel="noopener" onclick={close}
-			>Get involved <span aria-hidden="true">↗</span></a
-		>
+		<a href={GET_INVOLVED_URL} onclick={close}>Get involved <span aria-hidden="true">→</span></a>
 		<a href="/#chapters" onclick={close}>Chapters &amp; map</a>
 		{#if CAST_URL}<a href={CAST_URL} onclick={close}>Cast</a>{/if}
 		<a href="/credits" onclick={close}>Credits</a>

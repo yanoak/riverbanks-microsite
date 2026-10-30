@@ -1,0 +1,101 @@
+{
+	"requests": [
+		{
+			"updateFormInfo": {
+				"info": {
+					"title": "Riverbanks: get involved",
+					"description": "The answers from riverbanks.lol/get-involved arrive here. The site asks these questions in its own design; keep them in step with src/lib/form/fields.ts."
+				},
+				"updateMask": "title,description"
+			}
+		},
+		{ "deleteItem": { "location": { "index": 0 } } },
+		{
+			"createItem": {
+				"location": { "index": 0 },
+				"item": {
+					"title": "What would you like to do with Riverbanks?",
+					"questionItem": {
+						"question": {
+							"choiceQuestion": {
+								"type": "CHECKBOX",
+								"options": [
+									{ "value": "Translate it into my language" },
+									{ "value": "Exhibit it for my community" },
+									{ "value": "Host a talk or workshop" },
+									{ "value": "Publish or print it" },
+									{ "value": "Teach with it" },
+									{ "value": "Collaborate on what comes next" },
+									{ "isOther": true }
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 1 },
+				"item": { "title": "Your name", "questionItem": { "question": { "textQuestion": {} } } }
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 2 },
+				"item": { "title": "Where are you based?", "questionItem": { "question": { "textQuestion": {} } } }
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 3 },
+				"item": {
+					"title": "Your community or organisation",
+					"questionItem": { "question": { "textQuestion": {} } }
+				}
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 4 },
+				"item": {
+					"title": "Which language?",
+					"description": "If you'd like to translate it.",
+					"questionItem": { "question": { "textQuestion": {} } }
+				}
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 5 },
+				"item": {
+					"title": "Anything you'd like to tell us?",
+					"description": "What moved you, what bugged you, what you'd do with it.",
+					"questionItem": { "question": { "textQuestion": { "paragraph": true } } }
+				}
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 6 },
+				"item": { "title": "Your email", "questionItem": { "question": { "textQuestion": {} } } }
+			}
+		},
+		{
+			"createItem": {
+				"location": { "index": 7 },
+				"item": {
+					"title": "Keep me posted",
+					"questionItem": {
+						"question": {
+							"choiceQuestion": {
+								"type": "CHECKBOX",
+								"options": [{ "value": "Yes, send me news about Riverbanks" }]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}
