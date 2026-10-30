@@ -6,6 +6,7 @@
 	import { chapterAt, EDITION, PAGES, pageSrc } from '$lib/comic/edition';
 	import { book, label, ticks } from '$lib/comic/reader';
 	import { pageUrl, saveName, shareFor, shareMode } from '$lib/comic/share';
+	import { track } from '$lib/analytics';
 
 	let { start, origin }: { start: number; origin: string } = $props();
 
@@ -110,7 +111,16 @@
 	// Our menu first, everywhere: the system sheet is one item in it, since on a laptop the
 	// sheet offers AirDrop and Notes but not the chat apps. It shares the page on screen.
 	let canShareSheet = $state(false);
+	// GA's recommended `share` event: what was shared, and how.
+	function shared(method: string) {
+		track('share', {
+			method,
+			content_type: sharing === 'home' ? 'site' : 'page',
+			item_id: sharing === 'home' ? 'home' : String(page)
+		});
+	}
 	async function shareSheet() {
+		shared('share_sheet');
 		const target =
 			sharing === 'page'
 				? { ...shareFor(EDITION, page), url: pageUrl(origin, page) }
@@ -138,6 +148,7 @@
 		try {
 			await navigator.clipboard.writeText(sharing === 'home' ? origin : pageUrl(origin, page));
 			copied = true;
+			shared('copy_link');
 		} catch {
 			copied = false;
 		}
@@ -237,6 +248,13 @@
 		const url = `/p/${page}`;
 		if (pswp && location.pathname !== url) replaceState(url, {});
 		pswp?.element?.setAttribute('aria-label', where);
+	});
+
+	// Every page read, and reaching the end, for Google Analytics.
+	$effect(() => {
+		if (!pswp) return;
+		if (atEnd) track('finish_book');
+		else track('read_page', { page_number: page, chapter: chapter.title });
 	});
 
 	onMount(() => {
@@ -410,7 +428,10 @@
 						role="menuitem"
 						href={pageSrc(page, 'jpg', v)}
 						download={saveName(page)}
-						onclick={() => closeShare()}>Save page (JPEG)</a
+						onclick={() => {
+							shared('save_image');
+							closeShare();
+						}}>Save page (JPEG)</a
 					>
 				{/if}
 				{#if canShareSheet}

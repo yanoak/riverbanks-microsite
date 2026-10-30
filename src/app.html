@@ -11,6 +11,21 @@
 			rel="stylesheet"
 			crossorigin="anonymous"
 		/>
+		<!-- Google tag (gtag.js). Not on localhost, so testing doesn't count as visits. Page views
+		     after the first are SvelteKit navigations, which GA4's enhanced measurement picks up
+		     from the history API; page turns in the reader are `read_page` events
+		     (src/lib/analytics.ts). -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-VYMEDFZSE8"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+				gtag('js', new Date());
+				gtag('config', 'G-VYMEDFZSE8');
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
