@@ -4,5 +4,5 @@
 export const GET_INVOLVED_URL =
 	'https://docs.google.com/forms/d/1AqFVEIAn5_O9fR2rbb1NxDUb5qGxeyAZpglE0EdwECY/viewform';
 
-/** The cast page. Until F5 lands, the menu leaves it out. */
-export const CAST_URL: string | null = null;
+/** The cast page; null leaves it out of the menu. */
+export const CAST_URL: string | null = '/cast';

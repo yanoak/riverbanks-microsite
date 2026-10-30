@@ -10,7 +10,7 @@
 		/** Translucent, over the map (the landing page); otherwise solid paper. */
 		overlay?: boolean;
 		/** The page the header is on, for `aria-current`. */
-		current?: 'credits' | '';
+		current?: 'cast' | 'credits' | '';
 		height?: number;
 	} = $props();
 
@@ -33,7 +33,11 @@
 
 	<nav class="wide" aria-label="Site">
 		<a class="link" href="/#chapters">Chapters</a>
-		{#if CAST_URL}<a class="link" href={CAST_URL}>Cast</a>{/if}
+		{#if CAST_URL}<a
+				class="link"
+				href={CAST_URL}
+				aria-current={current === 'cast' ? 'page' : undefined}>Cast</a
+			>{/if}
 		<a class="link" href="/credits" aria-current={current === 'credits' ? 'page' : undefined}
 			>Credits</a
 		>
