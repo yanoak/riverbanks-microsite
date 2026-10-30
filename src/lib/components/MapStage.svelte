@@ -1,7 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { EDITION } from '$lib/comic/edition';
-	import { MAP, MARKERS, onMap, toScreen, type Frame, type Point } from '$lib/comic/map';
+	import {
+		MAP,
+		MARKERS,
+		PLACES,
+		RIVERS,
+		onMap,
+		spread,
+		toScreen,
+		unproject,
+		type Frame,
+		type Point
+	} from '$lib/comic/map';
 	import { badge } from '$lib/comic/chapters';
 
 	let {
@@ -15,17 +26,24 @@
 		width: number;
 		/** The chapter (its first page) lit by hover or focus, here or in the chapter list. */
 		hot?: number | null;
-		/** Phones: "Start here" alone on the Prologue's pill. */
+		/** Bottom layouts (portrait tablets, phones): no always-on "Start here" pill, which would
+		 * cover the markers around Johor; the panel has Start reading. */
 		compact?: boolean;
 	} = $props();
 
 	// Placement mode: `/?place` in `npm run dev` only. Markers drag, arrow keys nudge them, and
-	// Copy positions gives the MARKERS object for `map.ts`.
+	// Copy positions gives each marker's longitude and latitude for PLACES in `map.ts`.
 	let placing = $state(false);
 	let at = $state<Record<number, Point>>({ ...MARKERS });
 	let copied = $state(false);
 
-	const marks = $derived(onMap(EDITION, at).map((m, i) => ({ ...m, i, ...toScreen(m, frame) })));
+	// Markers that would overlap at this scale (the three around Johor) are pushed apart; while
+	// placing, they stay exactly where they are dragged.
+	const marks = $derived.by(() => {
+		const ms = onMap(EDITION, at).map((m, i) => ({ ...m, i, ...toScreen(m, frame) }));
+		return placing ? ms : spread(ms, 34);
+	});
+	const hotRiver = $derived(hot === null ? null : PLACES[hot]?.river);
 
 	let dragging: number | null = null;
 	function grab(e: PointerEvent, first: number) {
@@ -56,7 +74,10 @@
 		at[first] = { x: at[first].x + d[0], y: at[first].y + d[1] };
 	}
 	async function copy() {
-		const lines = Object.entries(at).map(([k, p]) => `\t${k}: { x: ${p.x}, y: ${p.y} }`);
+		const lines = Object.entries(at).map(([k, p]) => {
+			const { lon, lat } = unproject(p);
+			return `\t${k}: { lon: ${lon}, lat: ${lat} }`;
+		});
 		await navigator.clipboard.writeText(`{\n${lines.join(',\n')}\n}`);
 		copied = true;
 	}
@@ -70,17 +91,37 @@
 
 <div class="stage" class:placing>
 	<img
-		src="/map/sunda-landmass.svg"
+		src="/map/sea.svg"
 		alt=""
 		style:left="{frame.x}px"
 		style:top="{frame.y}px"
 		style:width="{MAP.w * frame.scale}px"
 	/>
 
+	<!-- The acts' rivers, lit one at a time: today's course solid, the drowned one dashed. -->
+	<svg
+		class="rivers"
+		viewBox="0 0 {MAP.w} {MAP.h}"
+		style:left="{frame.x}px"
+		style:top="{frame.y}px"
+		style:width="{MAP.w * frame.scale}px"
+		style:height="{MAP.h * frame.scale}px"
+		aria-hidden="true"
+	>
+		{#each Object.entries(RIVERS) as [name, river] (name)}
+			<g class:lit={hotRiver === name}>
+				<path class="halo" d={river.land} />
+				<path class="halo" d={river.drowned} />
+				<path class="land" d={river.land} />
+				<path class="drowned" d={river.drowned} />
+			</g>
+		{/each}
+	</svg>
+
 	{#each marks as m (m.first)}
 		<a
 			class="marker"
-			class:start={m.i === 0}
+			class:start={m.i === 0 && !compact}
 			class:hot={hot === m.first}
 			class:leftward={m.left > width - 320}
 			href="/p/{m.first}"
@@ -97,9 +138,14 @@
 			draggable="false"
 		>
 			<span class="dot" aria-hidden="true">{badge(m.i)}</span>
-			<span class="pill" aria-hidden="true"
-				>{m.i === 0 ? (compact ? 'Start here' : 'Start here · Prologue') : m.title}</span
-			>
+			<span class="pill" aria-hidden="true">
+				{m.i === 0 && !(hot === m.first)
+					? compact
+						? 'Start here'
+						: 'Start here · Prologue'
+					: m.title}
+				{#if hot === m.first && PLACES[m.first]}<small>{PLACES[m.first].where}</small>{/if}
+			</span>
 		</a>
 	{/each}
 
@@ -125,6 +171,38 @@
 		height: auto;
 		pointer-events: none;
 		user-select: none;
+	}
+	.rivers {
+		position: absolute;
+		overflow: visible;
+		pointer-events: none;
+	}
+	.rivers g {
+		opacity: 0;
+		transition: opacity 0.2s;
+	}
+	.rivers g.lit {
+		opacity: 1;
+	}
+	.rivers path {
+		fill: none;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+	}
+	.rivers .halo {
+		stroke: var(--color-ink);
+		stroke-width: 8px;
+		stroke-opacity: 0.85;
+	}
+	.rivers .land {
+		stroke: var(--color-signal);
+		stroke-width: 4.5px;
+	}
+	.rivers .drowned {
+		stroke: var(--color-signal);
+		stroke-width: 4px;
+		stroke-dasharray: 2px 7px;
 	}
 	.marker {
 		position: absolute;
@@ -175,6 +253,12 @@
 	.start .pill,
 	.hot .pill {
 		opacity: 1;
+	}
+	.pill small {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 400;
+		opacity: 0.8;
 	}
 	.hot {
 		z-index: 1;

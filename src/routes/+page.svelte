@@ -32,7 +32,7 @@
 	let hot = $state<number | null>(null);
 
 	const mode = $derived(layout(vw, vh));
-	const box = bounds(MARKERS, 35);
+	const box = bounds(MARKERS, 70);
 	// The map frames the markers in the space the header and the panel leave.
 	const framed = $derived.by(() => {
 		const free =
@@ -95,7 +95,7 @@
 </svelte:head>
 
 <div class="landing" class:measured>
-	<MapStage frame={framed} width={vw} compact={vw < 600} bind:hot />
+	<MapStage frame={framed} width={vw} compact={mode !== 'side'} bind:hot />
 	<SiteHeader overlay bind:height={headerHeight} />
 
 	<section class="panel {mode}" bind:this={panel} aria-labelledby="title">

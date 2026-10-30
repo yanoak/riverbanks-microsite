@@ -45,6 +45,39 @@ glowing marker per chapter and Sam's welcome over it.
 
 ## Approach
 
+**A wider map, real places, and each act's river** (Yan, 30 Oct).
+- The Sunda map (88–128°E, 9°S–14°N) left Myitsone, Chiang Mai and the Meghna off its top edge.
+  `scripts/landing-map.py` draws `static/map/sea.svg` instead: 68–132°E, 12°S–32°N
+  (2000 units wide, 75 KB), the same style and method as the exhibition's `sunda-maps.py`,
+  from ETOPO 2022.
+  - It's much wider than the acts need, so at the scale the markers set it still fills a
+    wide screen, and its sides end in open sea rather than cut land.
+  - `frame()` also never lets the map be narrower than the screen.
+  - First tries, 86–118°E and 78–124°E, left a strip of flat sea beside the map on wide
+    screens and hid Myitsone under the header.
+- Markers are places in longitude and latitude (`PLACES` in `map.ts`), at Southeast Asia
+  scale, from the drafts:
+
+  | Chapter | Place | River |
+  |---|---|---|
+  | Prologue | Johor Straits | Johor |
+  | Act One | Natuna, the Sunda Summit | Kapuas into the drowned North Sunda River |
+  | Act Two | Muara, on the Muar | Muar |
+  | Act Three | Myitsone | Ayeyarwady |
+  | Act Four | the Chao Phraya to Chiang Mai | Chao Phraya, from the Ping |
+  | Act Five | a village on the Meghna | Meghna |
+  | Epilogue | Svalbard, then Muara | Muar |
+
+- The script traces each river downstream from near its source to the lowstand sea, using the
+  same flow routing that draws the map's rivers. It writes the paths to `map.json`: today's
+  course and the drowned course separately.
+- Hovering or focusing a chapter (or its marker) lights its river: yellow on an ink halo, the
+  drowned stretch dotted. The pill adds where the act happens.
+- Act Two and the Epilogue share Muara, and the Prologue is next door. `spread()` pushes
+  markers closer than 34 px apart at the current scale, so all three stay tappable. The
+  always-on "Start here" pill shows only in the side layout; on portrait screens it covered
+  them, and the panel has Start reading.
+
 **Two layouts, picked by the screen's shape.** *Side*: width ≥ 900 px and wider than tall (a
 laptop, an iPad held landscape). *Bottom*: everything else (iPad portrait, phones).
 - **Side:** a translucent panel 460 px wide on the left, below the header. It holds the kicker,
@@ -113,7 +146,9 @@ no longer carries the credits.
 - [x] Landing: side panel and bottom panel and sheet, chapter list and chips sharing `hot`, Sam's
       intro
 - [x] `/credits` page; credits out of the home page
-- [ ] Yan places the markers; paste them in
+- [x] Wider map and river traces (`scripts/landing-map.py`); markers as places with rivers;
+      `spread()`; the hovered act's river lights up
+- [x] ~~Yan places the markers~~: replaced by places from the drafts, at Southeast Asia scale
       Desktop Chrome, 30 Oct:
       - 1522×757: side layout, every marker clear of the panel; hovering Act Two's row lights
         its marker and pill, and focusing Act Three's row does the same.
@@ -196,6 +231,9 @@ Chapters & map, Credits, and the licence line at the bottom.
 - [x] `frame()` pulls the map's edges back to the screen's when the map is bigger than the screen, so no gap shows — unit — `map.test.ts`
 - [x] `frame()` with a free rectangle wider than the box is limited by height, and the other way round — unit — `map.test.ts`
 - [x] `toScreen(point, frame)` turns map units into pixels — unit — `map.test.ts`
+- [x] `project()` maps corners to corners, and `unproject()` round-trips — unit — `map.test.ts`
+- [x] `spread()` parts overlapping markers about their middle, separates identical ones, leaves distant ones alone — unit — `map.test.ts`
+- [x] every place's river is in `map.json`, and every marker is on the map — unit — `map.test.ts`
 - [x] `layout(w, h)` is `'side'` for 1440×900 and 1180×820, `'bottom'` for 820×1180 and 390×844 — unit — `map.test.ts`
 
 ## Verification
@@ -229,7 +267,7 @@ On the preview:
 
 ## Open questions
 
-- [ ] Where does each act happen on the map? Yan places them (placement mode).
+- [x] Where does each act happen on the map? From the drafts; Muara is on the Muar (Yan).
 - [ ] The intro's "here" link: the F4 form once it exists; until then, plain text.
 - [ ] Get involved before F4 exists: where does it point? Sam's Google Form directly, or an
       email address?
