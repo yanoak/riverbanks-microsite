@@ -71,7 +71,7 @@ big bang.
 
 | # | Feature | Plan (to write) | Depends on | Notes |
 |---|---|---|---|---|
-| F4 | **Get-involved form**: Typeform-style steps (interests as checkbox tiles, about you and your community, contact), Taro and the cast around it, submits to a Google Form, so answers land in a Sheet | `2026-11-xx_engagement-form` | Sam's questions; the Google Form and its entry IDs | Post to the form's `formResponse` endpoint (no-cors) so Sam owns the data in Google. Reached from the landing page, the end of the book and the intro's "here" link |
+| F4 | **Get-involved form**: Typeform-style steps (interests as checkbox tiles, about you and your community, contact), Taro and the cast around it, submits to a Google Form, so answers land in a Sheet | [`2026-10-30_engagement-form`](2026-10-30_engagement-form.plan.md) | Sam's questions; the Google Form and its entry IDs | Post to the form's `formResponse` endpoint (no-cors) so Sam owns the data in Google. Reached from the landing page, the end of the book and the intro's "here" link |
 | F5 | **Cast page**: `/cast`, one sentence and a portrait per character, shareable as a whole and per character (`/cast#taro`) | [`2026-10-30_cast-page`](2026-10-30_cast-page.plan.md) | Portraits exported from the generator's `network-portraits` bucket; Sam approving the one-liners | Draft one-liners from `riverbook.json` are on the mockup canvas |
 
 ### Phase 3: launch polish (alongside phase 2)
