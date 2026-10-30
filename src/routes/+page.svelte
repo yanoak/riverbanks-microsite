@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { EDITION, PAGES, pageSrc } from '$lib/comic/edition';
+	import { intro } from '$lib/content/intro';
+	import MapHero from '$lib/components/MapHero.svelte';
+	import introMd from '../content/intro.md?raw';
 
 	let { data } = $props();
 
@@ -9,6 +12,13 @@
 
 	// The existing newsletter's signup page. Until it is set, the keep-in-touch box is hidden.
 	const NEWSLETTER_URL = '';
+	// Where the intro's "reach out here" goes. Until there is somewhere (F4's form), plain text.
+	const REACH_OUT_URL: string | null = null;
+
+	// Sam's intro, verbatim. Its closing licence line is left out: the licence line below says it.
+	const paragraphs = intro(introMd, REACH_OUT_URL).filter((p) => !p.startsWith('©'));
+	const fold = paragraphs.slice(0, 2);
+	const rest = paragraphs.slice(2);
 </script>
 
 <svelte:head>
@@ -27,28 +37,28 @@
 </svelte:head>
 
 <main class="bg-paper text-ink">
+	<MapHero />
+
 	<header class="intro">
 		<p class="kicker">Seapunk Studios presents</p>
 		<h1>Riverbanks</h1>
-		<p class="lede">A climate fiction comic about ecoarchic institutions</p>
-
-		<!-- Draft copy from the canon, for Sam to replace. -->
-		<p>
-			November 2027: six disasters strike in a single week, from the Caribbean to Japan to the Johor
-			Straits. <em>Riverbanks</em> follows what the world builds afterwards, across five acts and more
-			than sixty years, through the people and the rivers who have to live with it.
-		</p>
-		<p>
-			It premiered as an exhibition of A1 boards at BKKCAW 2026 in Lumpini Park, Bangkok. This is
-			the whole series, from the prologue to the epilogue, to read on any screen.
-		</p>
-		<p>
-			<em>Riverbanks</em> is made by Seapunk Studios with collaborators across the region. Essays, references
-			and reading lists are on their way.
-		</p>
+		{#each fold as p, i (i)}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
+			<p>{@html p}</p>
+		{/each}
 
 		<a class="start" href="/p/{EDITION.chapters[0].first}">Start reading →</a>
+		<p class="note">
+			Best read on a tablet held upright. Tap a glowing marker to start at that act.
+		</p>
 	</header>
+
+	<section class="after more" aria-label="About Riverbanks">
+		{#each rest as p, i (i)}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
+			<p>{@html p}</p>
+		{/each}
+	</section>
 
 	<nav class="after" aria-labelledby="chapters">
 		<h2 id="chapters">Chapters</h2>
@@ -114,8 +124,21 @@
 	.intro {
 		padding: 3rem 0 2.5rem;
 	}
-	.intro p + p {
+	.intro p + p,
+	.more p + p {
 		margin-top: 0.9em;
+	}
+	.intro p :global(a),
+	.more p :global(a) {
+		color: inherit;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.note {
+		margin-top: 1rem;
+		font-size: 0.9rem;
+		font-weight: 300;
+		color: rgb(28 25 23 / 0.75);
 	}
 	.kicker {
 		font-family: var(--font-label);
@@ -130,12 +153,6 @@
 		line-height: 0.95;
 		margin: 0.15em 0 0.2em;
 		text-transform: uppercase;
-	}
-	.lede {
-		font-size: 1.25rem;
-		font-weight: 600;
-		line-height: 1.35;
-		margin-bottom: 1.4rem;
 	}
 	.start {
 		display: inline-block;

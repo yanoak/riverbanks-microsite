@@ -64,8 +64,10 @@ mockup's sketch positions. The mode isn't in the production build (`import.meta.
 - The lede from the mockup ("A climate fiction comic about the institutions…") isn't Sam's. It
   stays out unless Sam wants it.
 - The "November" paragraph and the "here" link are open questions for Sam. Until they're
-  answered, "here" goes to `mailto:` Seapunk's contact address (open question) rather than a
-  dead `#TODO-link`.
+  answered, "here" is plain text (`REACH_OUT_URL = null` in `+page.svelte`) rather than a dead
+  `#TODO-link` or a guessed address.
+- Sam's closing "© Creative Commons…" line isn't repeated: the licence line under the credits
+  says it.
 
 **Buttons.** Start reading now. Meet the cast and Get involved appear when F5 and F4 land: each
 is behind a constant, like the newsletter box already is. The Chapters list stays below the
@@ -74,14 +76,19 @@ markers.
 
 ## Tasks
 
-- [ ] `map.ts`: markers per chapter, the crop, and the placement maths, with tests first
-- [ ] Intro from `intro.md` at build time (paragraphs, italics, links), tested
-- [ ] Hero: the cropped map with glowing markers linking to `/p/<first>`, the "Start here"
+- [x] `map.ts`: markers per chapter, the crop, and the placement maths, with tests first
+- [x] Intro from `intro.md` at build time (paragraphs, italics, links), tested
+- [x] Hero: the cropped map with glowing markers linking to `/p/<first>`, the "Start here"
       label on the Prologue
-- [ ] Below the hero: kicker, title, Sam's first two paragraphs, Start reading, the tablet
+- [x] Below the hero: kicker, title, Sam's first two paragraphs, Start reading, the tablet
       note; then the rest of the intro, Chapters, credits, licence, footer. Draft copy removed
-- [ ] Dev-only `/?place`: drag markers, copy positions
+- [x] Dev-only `/?place`: drag markers, copy positions
 - [ ] Yan places the markers; paste them in
+      Desktop Chrome, 30 Oct: seven markers in reading order, each linking to its divider
+      (`/p/11` opens Act Two, Back returns home); `/?place` drags, nudges with the arrows and
+      copies the `MARKERS` object; the production build has no placement bar. Fixed on the way:
+      the intro's link style blanked the Start reading button, and labels crossing a coast got
+      lost (now haloed). Phone width not checked: the browser window wouldn't resize
 - [ ] Preview deploy; Verification on the iPad
 
 ## UI mockups (ASCII)
@@ -143,12 +150,12 @@ Placement mode (`/?place`, dev only):
 
 ## Test list (TDD)
 
-- [ ] every chapter in `EDITION` has a marker, and every marker is a chapter — unit — `src/lib/comic/map.test.ts`
-- [ ] `place(marker, crop)` gives percentages inside the crop: the crop's corners give 0% and 100% — unit — `map.test.ts`
-- [ ] a marker outside the crop is reported as off-map — unit — `map.test.ts`
-- [ ] markers come out in reading order whatever their map order — unit — `map.test.ts`
-- [ ] `intro()` splits `intro.md` into paragraphs, drops the frontmatter, and keeps italics and links as HTML — unit — `src/lib/content/intro.test.ts`
-- [ ] the `#TODO-link` target is replaced, never rendered — unit — `intro.test.ts`
+- [x] every chapter in `EDITION` has a marker, and every marker is a chapter — unit — `src/lib/comic/map.test.ts`
+- [x] `place(marker, crop)` gives percentages inside the crop: the crop's corners give 0% and 100% — unit — `map.test.ts`
+- [x] a marker outside the crop is reported as off-map — unit — `map.test.ts`
+- [x] markers come out in reading order whatever their map order — unit — `map.test.ts`
+- [x] `intro()` splits `intro.md` into paragraphs, drops the frontmatter, and keeps italics and links as HTML — unit — `src/lib/content/intro.test.ts`
+- [x] the `#TODO-link` target is replaced, never rendered — unit — `intro.test.ts`
 
 ## Verification
 
