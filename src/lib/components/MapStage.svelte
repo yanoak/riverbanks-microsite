@@ -109,6 +109,13 @@
 	>
 		{#each Object.entries(RIVERS) as [name, river] (name)}
 			<g class:lit={hotRiver === name}>
+				<!-- A whole basin's tributaries, thinner, under the main stem. -->
+				{#if 'basin' in river}
+					<path class="halo trib" d={river.basin.land} />
+					<path class="halo trib" d={river.basin.drowned} />
+					<path class="land trib" d={river.basin.land} />
+					<path class="drowned trib" d={river.basin.drowned} />
+				{/if}
 				<path class="halo" d={river.land} />
 				<path class="halo" d={river.drowned} />
 				<path class="land" d={river.land} />
@@ -198,6 +205,17 @@
 		stroke: var(--color-signal);
 		stroke-width: 4px;
 		stroke-dasharray: 2px 7px;
+	}
+	.rivers .halo.trib {
+		stroke-width: 5px;
+		stroke-opacity: 0.7;
+	}
+	.rivers .land.trib {
+		stroke-width: 2.5px;
+	}
+	.rivers .drowned.trib {
+		stroke-width: 2.5px;
+		stroke-dasharray: 1.5px 5px;
 	}
 	.marker {
 		position: absolute;

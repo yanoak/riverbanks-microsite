@@ -76,8 +76,16 @@ glowing marker per chapter and Sam's welcome over it.
   course and the drowned course separately.
 - Hovering or focusing a chapter (or its marker) lights its river: yellow on an ink halo, the
   drowned stretch dotted. The pill adds where the act happens.
-- The map frames every marker and every point of every act's river (`FRAMED`), so a lit
+- The North Sunda River lights as a whole basin (Yan, 30 Oct): every drawn river that drains
+  to its mouth, thinner than the main stem. That takes in the Chao Phraya system, rivers from
+  north-east Thailand and Cambodia, the Malay Peninsula and Sumatra, and the Kapuas.
+  - The walk upstream runs through the Ice Age lakes (the Gulf of Thailand's), but skips
+    drawing segments inside them, where the routing runs ruler-straight.
+- The map frames every marker and every point of every act's main stem (`FRAMED`), so a lit
   river is never off screen.
+  - A basin's tributaries aren't framed. Fitting the North Sunda's reach into Laos shrank the
+    map until Acts Three to Five went under the header, so far tributaries may run off the
+    edge.
 - Act Two and the Epilogue share Muara. `spread()` pushes
   markers closer than 34 px apart at the current scale, so both stay tappable. The
   always-on "Start here" pill shows only in the side layout; on portrait screens it covered

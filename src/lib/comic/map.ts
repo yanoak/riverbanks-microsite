@@ -178,7 +178,9 @@ export function pathPoints(d: string): Point[] {
 	return ps;
 }
 
-/** What the map frames: every marker and every point of every river, so the lit one shows. */
+/** What the map frames: every marker and every point of every main stem, so the lit one shows.
+ * A basin's tributaries aren't framed: the North Sunda's reach into Laos and Sumatra, and fitting
+ * them would shrink the map until the markers crowd. They may run off the edge. */
 export const FRAMED: Point[] = [
 	...Object.values(MARKERS),
 	...Object.values(RIVERS).flatMap((r) => [...pathPoints(r.land), ...pathPoints(r.drowned)])

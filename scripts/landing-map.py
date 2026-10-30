@@ -49,6 +49,8 @@ RIVERS = {
     "muar": (102.3, 2.75),  # the upper Muar
     "north-sunda": (111.5, 0.2),  # the Kapuas, then the drowned North Sunda River past Natuna
 }
+# Rivers lit with their whole basin: every drawn river that drains to the same mouth.
+BASINS = {"north-sunda"}
 
 PALETTE = {
     "deep": "#A9CAC4",
@@ -253,7 +255,45 @@ def trace(start, down, acc, z, f):
     split = round(cut / max(len(cells) - 1, 1) * (len(pts) - 1))
     land = LineString(pts[: split + 1]).simplify(0.5).coords if split >= 1 else []
     sea = LineString(pts[split:]).simplify(0.5).coords if len(pts) - split >= 2 else []
-    return {"land": path(land), "drowned": path(sea), "acc": int(acc[cells[-1]])}
+    return {"land": path(land), "drowned": path(sea), "acc": int(acc[cells[-1]]), "mouth": cells[-1]}
+
+
+def basin(mouth, down, acc, lake, z, f):
+    """Every drawn river (past THRESHOLD) that drains to `mouth`, as paths split at junctions:
+    today's rivers and the drowned ones, for the page to light with the main stem."""
+    rows, cols = z.shape
+    # Lakes included: the drowned rivers ran through the lowstand lakes, and the basin must too.
+    stream = acc >= THRESHOLD
+    children = {}
+    for i in np.nonzero(stream)[0]:
+        children.setdefault(int(down[i]), []).append(int(i))
+    inside, todo = {int(mouth)}, [int(mouth)]
+    while todo:
+        for c in children.get(todo.pop(), []):
+            if c not in inside:
+                inside.add(c)
+                todo.append(c)
+    ups = {i: 0 for i in inside}
+    for i in inside:
+        j = int(down[i])
+        if j in ups:
+            ups[j] += 1
+    land, sea = [], []
+    for i in (i for i in inside if ups[i] != 1):
+        seg = [i]
+        j = int(down[i])
+        while j in inside:
+            seg.append(j)
+            if ups[j] != 1:
+                break
+            j = int(down[j])
+        # Walked through, but not drawn: across a flat lake the routing runs ruler-straight.
+        if len(seg) < 2 or lake.ravel()[seg[len(seg) // 2]]:
+            continue
+        pts = [f.cell(k // cols, k % cols) for k in seg]
+        d = path(LineString(chaikin(pts)).simplify(0.6).coords)
+        (sea if z.ravel()[seg[len(seg) // 2]] < 0 else land).append(d)
+    return {"land": "".join(land), "drowned": "".join(sea)}
 
 
 def main():
@@ -284,6 +324,8 @@ def main():
     out.write_text("\n".join(svg))
 
     rivers = {name: trace(start, down, acc, z, f) for name, start in RIVERS.items()}
+    for name in BASINS:
+        rivers[name]["basin"] = basin(rivers[name]["mouth"], down, acc, lake, z, f)
     meta = {
         "source": "scripts/landing-map.py (ETOPO 2022, 60 arc-second)",
         "west": WEST,
@@ -292,7 +334,10 @@ def main():
         "south": SOUTH,
         "w": W,
         "h": H,
-        "rivers": {k: {"land": v["land"], "drowned": v["drowned"]} for k, v in rivers.items()},
+        "rivers": {
+            k: {"land": v["land"], "drowned": v["drowned"], **({"basin": v["basin"]} if "basin" in v else {})}
+            for k, v in rivers.items()
+        },
     }
     (ROOT / "src/lib/comic/map.json").write_text(json.dumps(meta, indent="\t") + "\n")
     print(f"static/map/sea.svg  {out.stat().st_size / 1000:.0f} KB  {W}×{H}")
