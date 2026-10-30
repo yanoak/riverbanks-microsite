@@ -62,6 +62,13 @@
 			<a class="back" href="/">← Back to the map</a>
 		</div>
 	</main>
+
+	<footer class="made">
+		<a href="https://site.thibi.co" target="_blank" rel="noopener">
+			<span>Website by</span>
+			<img src="/thibi-logo.svg" alt="Thibi" width="584" height="172" />
+		</a>
+	</footer>
 </div>
 
 <style>
@@ -142,6 +149,29 @@
 		outline: 3px solid var(--color-teal);
 		outline-offset: 3px;
 	}
+	.made {
+		display: flex;
+		justify-content: center;
+		padding: 1.5rem 1rem calc(2rem + env(safe-area-inset-bottom));
+		border-top: 1px solid rgb(28 25 23 / 0.12);
+	}
+	.made a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: #44403c;
+		font-size: 0.875rem;
+		text-decoration: none;
+	}
+	.made img {
+		width: auto;
+		height: 1.75rem;
+	}
+	.made a:hover span {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+
 	@media (max-width: 899px) {
 		main {
 			flex-direction: column-reverse;
