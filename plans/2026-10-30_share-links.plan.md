@@ -28,9 +28,9 @@ after the MVP. Sharing a page is the MVP.
 ## Goal
 
 Sending `riverbanks.lol/p/26` in WhatsApp or LINE shows a card with that page on it and the
-act's name. In the reader, one tap on Share opens the device's share sheet with the page's link.
-Where there is no share sheet, a small menu offers Copy link and Save page. Save page gives a
-JPEG that goes into Photos and sends cleanly as a photo.
+act's name. In the reader, Share opens a small menu: Copy link, Save page, and More options… (the
+device's share sheet, where there is one). Save page gives a JPEG that goes into Photos and sends
+cleanly as a photo.
 
 ## Approach
 
@@ -48,9 +48,15 @@ Rejected: a Vercel OG function (`@vercel/og`). It works, but the site is fully p
 functions, and 52 static files cost nothing. Also rejected: the page itself as `og:image`. A
 portrait image gets cropped to a square or a strip in most apps, and you lose the page.
 
-**Share button: native first.** `navigator.share({ title, text, url })` where it exists (iPad
-Safari, phones). Otherwise, or if it throws anything but `AbortError`, a menu opens with
-"Copy link" and "Save page". The menu is a popover below the button, not a modal.
+**Share button: our menu first.** Share opens a popover below the button (not a modal) with
+"Copy link", "Save page" and, where `navigator.share` exists, "More options…", which opens the
+system sheet with `{ title, text, url }`.
+
+Changed 30 Oct, after Yan tried it in desktop Safari. It was native-first: the share sheet
+straight away, the menu only without one. On a Mac that sheet offers AirDrop, Messages and Notes
+but none of the chat apps. And Safari rejects a dismissed sheet with `NotAllowedError`, not
+`AbortError`, so closing it opened our menu as well. Menu-first costs an iPad one extra tap to
+reach WhatsApp, and puts Copy link one tap away everywhere.
 
 "Save page" is a plain `<a href="/comic/NN.jpg" download="riverbanks-p26.jpg">`. On iOS,
 `download` opens the image, and a long press saves it. That is good enough, so I didn't share
@@ -91,12 +97,13 @@ Reader top bar, controls shown:
                                                   ▲ Share
 ```
 
-No share sheet (desktop Firefox, older Chrome): the menu opens under Share.
+The menu opens under Share. More options… shows only where the browser has a share sheet.
 
 ```
                                        ┌────────────────────┐
                                        │ Copy link          │
                                        │ Save page (JPEG)   │
+                                       │ More options…      │
                                        └────────────────────┘
 After Copy link:                       ┌────────────────────┐
                                        │ ✓ Link copied      │
@@ -129,12 +136,12 @@ End card: under "← Back to Riverbanks", a second link "Share Riverbanks ⇪".
 2. **Shortcuts:**
    - `S` opens Share, the same as clicking it; ignored while focus is in the chapter menu or
      the scrubber.
-   - In the menu, ↑/↓ move between the two items, Enter or Space activates, and Esc closes it.
+   - In the menu, ↑/↓ move between the items (wrapping), Enter or Space activates, and Esc closes it.
 3. **Focus:**
    - Opening the menu focuses Copy link.
    - Esc or a click outside closes the menu and returns focus to Share.
    - After Copy link, focus stays on the item, which reads "Link copied".
-   - After the native sheet closes, focus returns to Share.
+   - More options… closes the menu, puts focus back on Share, then opens the system sheet.
    - While the menu is open, controls don't auto-hide (focus is inside them, as now).
 
 ## Test list (TDD)
@@ -155,12 +162,13 @@ On the preview, after the deploy:
    deploys sit behind Vercel's login, so for this step use the production domain once F2 is
    merged, or a protection-bypass link.)
 2. Desktop Chrome: open `/p/15`, press `S`.
-   - Chrome's share sheet opens, or the menu does.
+   - The menu opens, with focus on Copy link.
    - In the menu, ↓ then Enter on Save page downloads `riverbanks-p15.jpg`.
    - Copy link puts `…/p/15` on the clipboard, and the item reads "Link copied".
    - Esc closes the menu and focus returns to Share.
 3. Turn to page 20 and share again: the link is `/p/20`, not `/p/15`.
-4. iPad Safari: tap Share and the share sheet opens with the link. Save page opens the JPEG, and a
+4. iPad Safari: tap Share, then More options…, and the share sheet opens with the link.
+   Closing it leaves no menu behind. Save page opens the JPEG, and a
    long press then Save to Photos puts it in Photos. Send that photo in WhatsApp: it arrives sharp.
 5. End card: "Share Riverbanks" shares the home page.
 

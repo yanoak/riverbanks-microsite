@@ -107,20 +107,22 @@
 		}
 	}
 
-	// The share sheet where there is one; it shares the page on screen, not the one opened.
-	async function share(what: 'page' | 'home') {
+	// Our menu first, everywhere: the system sheet is one item in it, since on a laptop the
+	// sheet offers AirDrop and Notes but not the chat apps. It shares the page on screen.
+	let canShareSheet = $state(false);
+	async function shareSheet() {
 		const target =
-			what === 'page'
+			sharing === 'page'
 				? { ...shareFor(EDITION, page), url: pageUrl(origin, page) }
 				: { title: 'Riverbanks', text: 'A climate fiction comic by Seapunk Studios.', url: origin };
-		if (shareMode(navigator) === 'native') {
-			try {
-				await navigator.share(target);
-				return shareButton.focus();
-			} catch (err) {
-				if ((err as Error).name === 'AbortError') return shareButton.focus();
-			}
+		closeShare();
+		try {
+			await navigator.share(target);
+		} catch {
+			// Closing the sheet rejects too (Safari says NotAllowedError, not AbortError).
 		}
+	}
+	async function share(what: 'page' | 'home') {
 		show();
 		sharing = what;
 		copied = null;
@@ -240,6 +242,7 @@
 	onMount(() => {
 		const d = document as Webkit;
 		canFullscreen = !!(document.fullscreenEnabled || d.webkitFullscreenEnabled);
+		canShareSheet = shareMode(navigator) === 'native';
 		const onFullscreen = () =>
 			(fullscreen = !!(document.fullscreenElement ?? d.webkitFullscreenElement));
 		document.addEventListener('fullscreenchange', onFullscreen);
@@ -409,6 +412,9 @@
 						download={saveName(page)}
 						onclick={() => closeShare()}>Save page (JPEG)</a
 					>
+				{/if}
+				{#if canShareSheet}
+					<button role="menuitem" onclick={shareSheet}>More options…</button>
 				{/if}
 			</div>
 		{/if}
