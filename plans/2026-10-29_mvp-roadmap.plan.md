@@ -103,7 +103,11 @@ big bang.
 - [ ] F1 Page reader
 - [ ] F2 Page links and sharing
 - [ ] F3 Landing with the map and intro
-- [ ] Production deploy of phase 1
+- [x] Production deploy of phase 1: 30 Oct, at Yan's request
+  - `comic-reader` fast-forwarded into `main` (`876b530`) and `vercel deploy --prod`.
+  - riverbanks.lol redirects to www.riverbanks.lol, which serves the landing page, reader,
+    cast, credits and the get-involved form (F4 and F5 went out with it).
+  - This came ahead of the iPad walkthrough, which now checks the live site.
 - [ ] F4 Get-involved form
 - [ ] F5 Cast page
 - [ ] Phase 3 launch polish and production deploy
