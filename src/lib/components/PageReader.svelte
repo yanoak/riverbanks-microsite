@@ -234,14 +234,22 @@
 		if (next) pswp?.goTo(next.index);
 	}
 
+	// The zoom hint, once, the first time the page is zoomed. Its timer isn't tied to the effect:
+	// zooming back out re-ran the effect, cleared the timer, and left the hint up for good.
 	let hinted = false;
+	let hintTimer: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
 		if (!zoomed || hinted) return;
 		hinted = true;
 		hint = true;
-		const t = setTimeout(() => (hint = false), 3500);
-		return () => clearTimeout(t);
+		hintTimer = setTimeout(() => (hint = false), 4500);
 	});
+	function dismissHint() {
+		clearTimeout(hintTimer);
+		hint = false;
+	}
+	/** The bottom bar's height, so the hint sits above it while the controls show. */
+	let bottomBar = $state(0);
 
 	// The URL follows the page without adding history, so Back leaves the reader in one step.
 	$effect(() => {
@@ -327,6 +335,7 @@
 
 		return () => {
 			clearTimeout(idle);
+			clearTimeout(hintTimer);
 			document.removeEventListener('fullscreenchange', onFullscreen);
 			document.removeEventListener('webkitfullscreenchange', onFullscreen);
 			p.destroy();
@@ -440,7 +449,7 @@
 			</div>
 		{/if}
 
-		<div class="bar bottom">
+		<div class="bar bottom" bind:offsetHeight={bottomBar}>
 			<button
 				class="icon"
 				aria-label="Previous page"
@@ -471,7 +480,20 @@
 	</div>
 
 	{#if hint}
-		<p class="hint" aria-hidden="true">Swipe moves around the page · double-tap to fit</p>
+		<div class="hint" role="status" style:bottom={shown ? `${bottomBar + 12}px` : undefined}>
+			<span>Swipe moves around the page · double-tap to fit</span>
+			<button class="hint-close" aria-label="Dismiss the tip" onclick={dismissHint}>
+				<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+					<path
+						d="M6 6l12 12M18 6L6 18"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2.4"
+						stroke-linecap="round"
+					/>
+				</svg>
+			</button>
+		</div>
 	{/if}
 
 	<p class="sr-only" aria-live="polite">{where}</p>
@@ -633,20 +655,44 @@
 		outline: 3px solid var(--color-signal);
 		outline-offset: 2px;
 	}
+	/* Above the bottom bar while the controls show, near the bottom edge when they don't; wraps on
+	   a phone rather than running under the scrubber. */
 	.hint {
 		position: fixed;
 		bottom: max(1.5rem, env(safe-area-inset-bottom));
 		left: 50%;
-		z-index: 20;
+		z-index: 21;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
 		translate: -50%;
-		border-radius: 999px;
-		background: rgb(28 25 23 / 0.85);
+		border-radius: 1.25rem;
+		background: rgb(28 25 23 / 0.88);
 		color: var(--color-paper);
-		padding: 0.5rem 1rem;
+		padding: 0.3rem 0.3rem 0.3rem 1rem;
 		font-family: var(--font-sans);
 		font-size: 0.9rem;
-		white-space: nowrap;
-		pointer-events: none;
+		line-height: 1.3;
+		transition: bottom 0.2s;
+	}
+	.hint-close {
+		display: grid;
+		flex: none;
+		width: 2.25rem;
+		height: 2.25rem;
+		place-items: center;
+		border-radius: 999px;
+		color: inherit;
+		cursor: pointer;
+	}
+	.hint-close:hover {
+		background: rgb(243 236 220 / 0.15);
+	}
+	.hint-close:focus-visible {
+		outline: 3px solid var(--color-signal);
+		outline-offset: 1px;
 	}
 
 	:global(.reader-pswp:focus-visible) {
