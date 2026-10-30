@@ -7,8 +7,8 @@
 # network-portraits/riverbook/<cast member id>; the generator publishes them when the network is
 # saved) into static/cast/<id>.webp: head and shoulders, square, 400 px. The network portraits
 # are turnaround sheets (three full-body views side by side); the crop finds the middle, front
-# view's outline and takes a square from its top. Taro has no network portrait, so hers comes
-# from her reference sheet in art/taro/refs (gitignored: keep a local copy). Then composes
+# view's outline and takes a square from its top. Taro's three ages come from the style profile's
+# cast, in the same bucket (below). Then composes
 # static/cast/card.jpg, the page's 1200×630 link card. Needs curl and magick.
 set -euo pipefail
 
@@ -50,11 +50,17 @@ for entry in "${portraits[@]}"; do
 	magick "$work/$id" -crop "${size}x${size}+$((cx - size / 2))+${top}" +repage \
 		-resize 400x400 -quality 82 "$out/$id.webp"
 done
-# Taro's sheet is one view on white: her head and chest, with the white around her turned to the
-# others' paper (a flood fill from the corners, so her white fur stays).
-magick "$root/art/taro/refs/taro-cat-front.png" -background '#f3ecdc' -flatten -fuzz 4% -fill '#f3ecdc' \
-	-draw 'color 0,0 floodfill' -draw 'color 2091,0 floodfill' \
-	-crop 760x760+666+520 +repage -resize 400x400 -quality 82 "$out/taro.webp"
+# Taro grows up: kitten (2052), cat (2065) and beaing (2090, cybernetic). Her three sheets show the
+# front view on the left, so they're cropped by hand to head and chest. The cat is also her portrait
+# on the cast page; the get-involved form shows one per step.
+taro() {
+	curl -sSf -o "$work/taro-$1" "$bucket/$2"
+	magick "$work/taro-$1" -crop "$3" +repage -resize 400x400 -quality 82 "$out/taro-$1.webp"
+}
+taro kitten 0eca8304-be17-4dc8-af34-265de0765551 320x320+30+185
+taro cat 47ddca79-f355-43b3-9800-e0e0221c84fc 262x262+38+166
+taro beaing 727ca67b-9c02-403b-9363-ebbc7ca4648b 310x310+22+74
+cp "$out/taro-cat.webp" "$out/taro.webp"
 
 # The link card: the portraits in two rows on paper.
 order=(darya nusa ismahan sultan-nuh hamzah faris dew ya taro jalal shapla teja biret)
@@ -67,4 +73,4 @@ done
 magick montage "${tiles[@]}" -tile 7x2 -geometry +8+8 -background none "$work/grid.png"
 magick -size 1200x630 xc:'#f3ecdc' "$work/grid.png" -gravity center -composite -quality 84 "$out/card.jpg"
 
-echo "$(ls "$out"/*.webp | wc -l | tr -d ' ') portraits and card.jpg → static/cast ($(du -sh "$out" | cut -f1))"
+echo "$(ls "$out"/*.webp | wc -l | tr -d ' ') images and card.jpg → static/cast ($(du -sh "$out" | cut -f1))"

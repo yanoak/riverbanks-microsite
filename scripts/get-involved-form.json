@@ -43,7 +43,10 @@
 		{
 			"createItem": {
 				"location": { "index": 2 },
-				"item": { "title": "Where are you based?", "questionItem": { "question": { "textQuestion": {} } } }
+				"item": {
+					"title": "Where are you based?",
+					"questionItem": { "question": { "textQuestion": {} } }
+				}
 			}
 		},
 		{

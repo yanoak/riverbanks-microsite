@@ -18,12 +18,13 @@
 	let { data } = $props();
 
 	const STEPS = 3;
-	// What Taro says on each step, and after.
+	// Taro grows up as the form goes on: kitten, cat, then beaing (and still the beaing after),
+	// each with her line.
 	const TARO = [
-		'Pick one. Or all.',
-		'Tell us a little about you.',
-		'Last one, promise.',
-		'Thank you!'
+		{ src: '/cast/taro-kitten.webp', says: 'Pick one. Or all.' },
+		{ src: '/cast/taro-cat.webp', says: 'Tell us a little about you.' },
+		{ src: '/cast/taro-beaing.webp', says: 'Last one, promise.' },
+		{ src: '/cast/taro-beaing.webp', says: 'Thank you!' }
 	];
 
 	let step = $state<1 | 2 | 3 | 'done'>(1);
@@ -35,6 +36,7 @@
 
 	const translating = $derived(answers.interests.includes(TRANSLATE));
 	const n = $derived(step === 'done' ? STEPS : step);
+	const taro = $derived(TARO[step === 'done' ? 3 : step - 1]);
 
 	async function show(next: typeof step) {
 		step = next;
@@ -78,6 +80,9 @@
 
 <svelte:head>
 	<title>Get involved · Riverbanks</title>
+	<!-- The later Taros, so each step's picture is there when it's reached. -->
+	<link rel="preload" as="image" href="/cast/taro-cat.webp" />
+	<link rel="preload" as="image" href="/cast/taro-beaing.webp" />
 	<meta
 		name="description"
 		content="Translate, exhibit, teach or collaborate on Riverbanks: tell Seapunk Studios what you'd like to do. It takes about two minutes."
@@ -123,8 +128,8 @@
 				{/if}
 			</div>
 			<figure class="taro" aria-hidden="true">
-				<p class="bubble">{TARO[step === 'done' ? 3 : step - 1]}</p>
-				<img src="/cast/taro.webp" alt="" width="400" height="400" />
+				<p class="bubble">{taro.says}</p>
+				<img src={taro.src} alt="" width="400" height="400" />
 			</figure>
 		</div>
 

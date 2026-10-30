@@ -64,7 +64,9 @@ changing the field IDs):
   tested.
 - **Page `/get-involved`** follows board 7, one step at a time:
   - Steps 1–3, each with its question as the `h1`, a progress line ("1 of 3"), Back and Next.
-  - Taro with a speech bubble changes line per step.
+  - Taro with a speech bubble changes line per step, and grows up as the form goes on (Yan,
+    30 Oct): the kitten, then the cat, then the beaing for step 3 and the thank-you. The three
+    are the style profile's Taro sheets, cropped by `scripts/cast-portraits.sh`.
   - Then a thank-you with Start reading and Meet the cast.
   - Answers survive Back and Forward within the page. Nothing is stored after sending.
   - The voice-note box is left out: voice notes need storage and moderation (roadmap, "Later").
