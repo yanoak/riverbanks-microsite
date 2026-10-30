@@ -116,14 +116,16 @@ Edition and CC BY-NC. The site preview deploy shows all of this, and production 
 - [x] Generator `219b51e`: footer centre in Rubik Light, no stroke. Pushed and live; checked on
       p15 in the production editor. The centre is small (14 px at most on the board), so Sam
       should judge it on the iPad export
-- [ ] Yan exports the PDF with the watermark off and puts it in `~/Downloads`
-- [ ] Run `scripts/comic-pages.sh` on it; contact sheet of every page; commit the images and
-      `pages.json`
+- [x] Yan exports the PDF with the watermark off (30 Oct, `art/`, not committed). The first try
+      came out on B5 paper, each board shrunk into the top-left and cut off; re-exported on
+      Original (A1 boards). The B5 bug is an ad hoc todo in the 29 Oct diary
+- [x] Run `scripts/comic-pages.sh` on it; contact sheet of every page; commit the images and
+      `pages.json` (52 pages, version `3bdcd2ce48`; footer reads "p15 (Screen)", no watermark)
 - [x] `Edition` shows only the chapters: `last` ends the book, no Cover group, posters and
       front pages left out (tests first; "Start reading" goes to the Prologue)
-- [ ] `edition.ts`: act starts from the contact sheet (Prologue 4, One 6, Two 11, Three 19,
-      Four 26, Five 33, Epilogue 43, `last` 49, credits 50, if the export matches the
-      comic); tests green
+- [x] `edition.ts`: act starts from the contact sheet (Prologue 4, One 6, Two 11, Three 19,
+      Four 26, Five 33, Epilogue 43, `last` 49); tests green. The credits board is page 2 in
+      this export, not 50: 50–52 are the three posters
 - [x] Remove the overlay strip from `ComicReader.svelte`. The meta description says Premiere
       Edition. A licence line above the site footer: `Riverbanks Volume I · BKKCAW26 Premiere
       Edition · CC BY-NC, Seapunk Studios & collaborators 2026 · seapunk.asia`. Act Four stays

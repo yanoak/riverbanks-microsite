@@ -28,21 +28,21 @@ export interface Group extends Chapter {
 
 export const PAGES = pages;
 
-// From Compilation Lo Res (12 Oct): two posters, then each act opens on its divider board,
-// the Epilogue ends on 46, and the credits board is last.
+// From Compilation Lo Res (30 Oct, Premiere Edition): the cover, the credits board on 2 and a
+// blank 3, then each act opens on its divider board; the Epilogue ends on 49, then three posters.
 // Titles follow the compilation comic's dividers (checked over MCP, 29 Oct).
 export const EDITION: Edition = {
 	count: pages.count,
-	last: 46,
-	credits: pages.count,
+	last: 49,
+	credits: 2,
 	chapters: [
-		{ title: 'Prologue: Six Disasters, One Dream', first: 3 },
-		{ title: 'Act One: Life, the Pluriverse, and Everything', first: 4 },
-		{ title: 'Act Two: House of Taming Currents', first: 9 },
-		{ title: 'Act Three: Kinetic Adaptation Economy', first: 17 },
-		{ title: 'Act Four: Gross Deliciousness Index', first: 24 },
-		{ title: 'Act Five: A Visa for a Hilsa', first: 31 },
-		{ title: 'Epilogue: River of Seeds', first: 41 }
+		{ title: 'Prologue: Six Disasters, One Dream', first: 4 },
+		{ title: 'Act One: Life, the Pluriverse, and Everything', first: 6 },
+		{ title: 'Act Two: House of Taming Currents', first: 11 },
+		{ title: 'Act Three: Kinetic Adaptation Economy', first: 19 },
+		{ title: 'Act Four: Gross Deliciousness Index', first: 26 },
+		{ title: 'Act Five: A Visa for a Hilsa', first: 33 },
+		{ title: 'Epilogue: River of Seeds', first: 43 }
 	]
 };
 
