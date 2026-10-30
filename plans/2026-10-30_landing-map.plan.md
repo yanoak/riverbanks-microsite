@@ -6,186 +6,216 @@ finished:
 issue:
 ---
 
-# F3: the landing page, with the map and Sam's intro
+# F3: the landing page, a full-screen map with Sam's intro
 
 ## Context
 
-- The home page (`src/routes/+page.svelte`) is still the scroll reader's page with the scroll
-  reader taken out: a kicker, the title, three paragraphs of draft copy "for Sam to replace",
-  Start reading, a Chapters list, the credits board, the licence line and the footer.
-- Sam's intro (29 Oct) is in `src/content/intro.md`, verbatim. It is six paragraphs plus the
-  licence line. Its "here" link has no target yet (`#TODO-link`), and it promises a November
-  release "here (riverbanks.lol)", which reads oddly once the comic is live.
+- Sam's intro (29 Oct) is in `src/content/intro.md`, verbatim: six paragraphs plus a licence
+  line. Its "here" link has no target yet (`#TODO-link`). It promises a November release "here
+  (riverbanks.lol)", which reads oddly once the comic is live.
 - The map is `static/map/sunda-landmass.svg`, 1000×596 (sea `#A9CAC4`), from the holding page.
-- The mockup's iPad board ([MVP mockups](https://claude.ai/artifact/5N9u5BM2rdNbbjKcEDRKor),
-  "Riverbanks landing on iPad"):
-  - The map fills the top 640 of 1180 px, cropped to the middle of the landmass, labelled
-    "The Sunken Continent".
-  - It has seven glowing yellow markers: "Start here · Prologue" plus I–V and Epi.
-  - Below it: the kicker, the title, a lede, three buttons (Start reading, Meet the cast,
-    Get involved) and a "best read on a tablet held upright" note.
-- The marker positions in the mockup are a sketch. The [roadmap](2026-10-29_mvp-roadmap.plan.md)
-  makes "Yan placing the markers on the map" a dependency of F3.
-- Meet the cast (F5) and Get involved (F4) don't exist yet.
+- The marker positions are a sketch from the first mockup. The
+  [roadmap](2026-10-29_mvp-roadmap.plan.md) makes "Yan placing the markers on the map" a
+  dependency of F3.
+- Cast (F5) and Get involved (F4) don't exist yet.
+
+**Revised 30 Oct.** The first version (commit `7cc1d31`) followed the old iPad mockup: the map as
+a band across the top, with the text, chapters and credits scrolling below it. Yan rejected it:
+it has to work on tablet, phone and desktop alike. The brief became:
+- the map full screen;
+- a header menu that turns into a hamburger;
+- the welcome text over the map in a translucent panel;
+- hovering a chapter highlights its place on the map;
+- the credits on a page of their own.
+
+The designs are boards 10–14 on the [MVP mockups](https://claude.ai/artifact/5N9u5BM2rdNbbjKcEDRKor)
+canvas ("Landing v2"); Yan approved them on 30 Oct. From the first version, `map.ts` (markers in
+map units), `intro.ts` and the dev placement mode carry over.
 
 ## Goal
 
-On an iPad held upright, `riverbanks.lol` shows the map with a glowing marker per chapter and the
-first two paragraphs of Sam's intro without scrolling. Tapping a marker opens the reader at that
-chapter's divider (`/p/4` … `/p/43`). Start reading opens the Prologue. The rest of the intro, the
-credits and the licence line follow below.
+`riverbanks.lol` opens on the map, filling the screen on a phone, a tablet or a laptop, with a
+glowing marker per chapter and Sam's welcome over it.
+- On a wide screen the welcome and the chapter list sit in a panel on the left. Hovering a
+  chapter lights its marker, and hovering a marker lights its chapter.
+- On a portrait tablet or a phone, the panel docks at the bottom.
+- Every marker and chapter opens the reader at that chapter's divider.
+- The header's links (Chapters, Credits, Start reading) fold into a hamburger on narrow screens.
+- `/credits` shows the credits board.
 
 ## Approach
 
-**Markers are data, in map coordinates.** `src/lib/comic/map.ts` holds one marker per chapter,
-keyed by the chapter's `first` page, at `{ x, y }` in the SVG's own 1000×596 units, plus the crop
-the hero shows. A pure function turns a marker into `left`/`top` percentages inside the crop, and
-marks one outside the crop as off-map, so it isn't drawn. Positions survive a change of crop or
-screen size, and a test catches a chapter without a marker.
+**Two layouts, picked by the screen's shape.** *Side*: width ≥ 900 px and wider than tall (a
+laptop, an iPad held landscape). *Bottom*: everything else (iPad portrait, phones).
+- **Side:** a translucent panel 460 px wide on the left, below the header. It holds the kicker,
+  the title, Sam's first two paragraphs, Start reading, the chapter list, then the rest of the
+  intro. It scrolls inside itself if it's taller than the screen.
+- **Bottom:**
+  - On a tablet, a panel across the bottom with the welcome and the chapters as two columns
+    of buttons.
+  - On a phone, a sheet whose top shows the kicker, the title, ¶1, Start reading and a row of
+    chapter chips; the rest scrolls inside it.
 
-**Hero: a fixed-aspect box, not `object-fit: cover`.** The hero is a box with the crop's aspect
-ratio. The map image inside is positioned so the crop fills it, and the markers are HTML links
-laid over it at percentages. With `cover`, the visible part would depend on the screen, and the
-markers would drift off the land. On a phone the same crop just gets smaller.
+  A side panel on a portrait screen would cover most of the map (agreed on the boards).
 
-Rejected: markers as SVG `<a>` inside an inline map. Labels would scale with the map and get tiny
-on a phone, and the focus rings and hit areas are fiddlier than on HTML links.
+**The map frames the markers in whatever space the panel leaves.** A pure function,
+`frame(view, free, bounds)`, takes the screen size, the free rectangle (the screen minus the
+header and the panel) and the markers' bounding box in map units. It returns the map's scale and
+offset:
+- The markers' box, padded, fits and is centred in the free rectangle.
+- Where the map is bigger than the screen, its edges are pulled back to the screen's edges, so
+  no sea-coloured gap shows.
 
-**Placing the markers: a dev-only placement mode.** In `npm run dev`, `/?place` makes each marker
-draggable and shows a "Copy positions" button. It copies the `MARKERS` object, ready to paste into
-`map.ts`. Yan drags them to where each act happens and pastes. Until then they sit at the
-mockup's sketch positions. The mode isn't in the production build (`import.meta.env.DEV`).
+The page measures the panel (`ResizeObserver`) and reframes when it or the screen changes. Markers
+are placed in pixels from their map units. Rejected: fixed crops per breakpoint. They break
+between breakpoints and every time Yan moves a marker.
 
-**Copy: Sam's words, verbatim.**
-- The intro comes from `src/content/intro.md`, rendered at build time (a small Markdown step:
-  paragraphs, italics, links). The first two paragraphs sit beside or under the title above the
-  fold; the other four follow.
-- The draft paragraphs I wrote go.
-- The lede from the mockup ("A climate fiction comic about the institutions…") isn't Sam's. It
-  stays out unless Sam wants it.
-- The "November" paragraph and the "here" link are open questions for Sam. Until they're
-  answered, "here" is plain text (`REACH_OUT_URL = null` in `+page.svelte`) rather than a dead
-  `#TODO-link` or a guessed address.
-- Sam's closing "© Creative Commons…" line isn't repeated: the licence line under the credits
-  says it.
+**Highlighting is shared state, not CSS `:has()`.** The page holds `hot` (a chapter's first page,
+or null). A chapter row and its marker set it on pointer enter and focus, and clear it on leave
+and blur. A hot marker grows, glows harder and shows its title pill; a hot row is shaded. The
+Prologue's "Start here" pill always shows. The mockup used `:has()`, which works, but state also
+covers keyboard focus and is testable.
 
-**Buttons.** Start reading now. Meet the cast and Get involved appear when F5 and F4 land: each
-is behind a constant, like the newsletter box already is. The Chapters list stays below the
-intro: it is the keyboard and screen-reader route to each act, and the list version of the
-markers.
+**Header.** `SiteHeader.svelte`, shared by `/` and `/credits`: the wordmark (home), Chapters,
+Credits, and Start reading.
+- Cast and Get involved are in the design but behind constants until F5 and F4 land, like the
+  newsletter box.
+- Below 900 px: the wordmark, Start reading (on tablets only) and a hamburger. The hamburger
+  opens a full-screen menu (board 13) that closes with Esc, the ✕, or a link.
+- On `/`, Chapters scrolls the panel to its list and focuses the first chapter. Elsewhere it
+  goes to `/#chapters`.
+
+**Credits page** `/credits` (board 14): the credits board image, a line about the premiere,
+Open full size, the licence line and Back to the map. On a phone it's one column. The home page
+no longer carries the credits.
+
+**Kept from the first version:**
+- Markers as data in map units (`map.ts`, now without `CROP`).
+- `intro()` from `intro.md`: Sam's words verbatim, with the "here" link as plain text until there's
+  a target, and the © line left out in favour of our licence line.
+- `/?place` in dev for Yan to drag the markers into place.
+- The halo on labels.
 
 ## Tasks
 
-- [x] `map.ts`: markers per chapter, the crop, and the placement maths, with tests first
-- [x] Intro from `intro.md` at build time (paragraphs, italics, links), tested
-- [x] Hero: the cropped map with glowing markers linking to `/p/<first>`, the "Start here"
-      label on the Prologue
-- [x] Below the hero: kicker, title, Sam's first two paragraphs, Start reading, the tablet
-      note; then the rest of the intro, Chapters, credits, licence, footer. Draft copy removed
-- [x] Dev-only `/?place`: drag markers, copy positions
+- [x] `map.ts` markers in map units; `intro.ts` from `intro.md`, tested (first version)
+- [x] Dev-only `/?place`: drag markers, copy positions (first version)
+- [x] First version: map band on top, text below (`7cc1d31`), superseded by the redesign
+- [x] Designs for the redesign: boards 10–14 on the mockup canvas, approved by Yan
+- [ ] `frame()` and `bounds()` in `map.ts`, tests first; drop `CROP` and `place()`
+- [ ] `SiteHeader.svelte`: links, hamburger and the full-screen menu
+- [ ] Full-screen `MapStage.svelte` with markers in pixels, hot state, and placement mode moved in
+- [ ] Landing: side panel and bottom panel and sheet, chapter list and chips sharing `hot`, Sam's
+      intro
+- [ ] `/credits` page; credits out of the home page
 - [ ] Yan places the markers; paste them in
-      Desktop Chrome, 30 Oct: seven markers in reading order, each linking to its divider
-      (`/p/11` opens Act Two, Back returns home); `/?place` drags, nudges with the arrows and
-      copies the `MARKERS` object; the production build has no placement bar. Fixed on the way:
-      the intro's link style blanked the Start reading button, and labels crossing a coast got
-      lost (now haloed). Phone width not checked: the browser window wouldn't resize
-- [ ] Preview deploy; Verification on the iPad
+- [ ] Preview deploy; Verification on the iPad and a phone
 
 ## UI mockups (ASCII)
 
-iPad portrait (820×1180), from the mockup board:
+The boards are the reference (10 desktop, 11 iPad portrait, 12 phone, 13 phone menu, 14 credits).
+
+Side layout (desktop, iPad landscape):
 
 ```
-┌──────────────────────────────────────────────┐
-│ THE SUNKEN CONTINENT                         │
-│        · IV                                  │
-│   · I                                        │
-│ · V          ◉ Start here · Prologue         │  map, cropped,
-│                                              │  aspect fixed
-│  · III              · II                     │
-│                               · Epi          │
-├──────────────────────────────────────────────┤
-│ SEAPUNK STUDIOS PRESENTS                     │
-│ RIVERBANKS                                   │
-│ Welcome to Riverbanks, a climate fiction     │  Sam ¶1
-│ series by Seapunk Studios.                   │
-│ Riverbanks explores the idea of ecoarchy…    │  Sam ¶2
-│ ( Start reading → )                          │
-│ Best read on a tablet held upright. Tap a    │
-│ glowing marker to start at that act.         │
-├──────────────────────────────────────────────┤  fold
-│ Conceived in early 2026…                     │  Sam ¶3–6
-│ CHAPTERS  1 Prologue … 7 Epilogue            │
-│ CREDITS   [credits board]                    │
-│ licence line                                 │
-│ RIVERBANKS.LOL               SEAPUNK STUDIOS │
-└──────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│ RIVERBANKS            Chapters  Credits  ( Start reading → )              │ header, translucent
+├───────────────────────────────────────────────────────────────────────────┤
+│ ┌───────────────────────┐                ◉ IV                             │
+│ │ SEAPUNK STUDIOS PRES… │        ◉ I                                      │
+│ │ RIVERBANKS            │   ◉ V        ◉ Start here · Prologue            │
+│ │ Welcome to …          │                        [Act Two · House of… ]◉II │ hot: pill + glow
+│ │ Riverbanks explores … │       ◉ III                                     │
+│ │ ( Start reading → )   │                                         ◉ E    │
+│ │ CHAPTERS              │                                                 │
+│ │ P Prologue …      p4  │                                                 │
+│ │▓II Act Two …     p11 ▓│ ← hot row                                       │
+│ │ …  (then ¶3–6)        │                          CC BY-NC · seapunk.asia│
+│ └───────────────────────┘                                                 │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
 
-Phone (390 wide): the same crop, 390 × ~303. Marker labels shrink to the numeral and the
-"Start here" pill stays. Text below, one column.
-
-Placement mode (`/?place`, dev only):
+Bottom layout (iPad portrait; a phone is the same with a sheet and a chip row):
 
 ```
-┌──────────────────────────────────────────────┐
-│ PLACING MARKERS · drag them  [Copy positions]│
-│        ✥ IV                                  │
-│   ✥ I         ✥ Start here · Prologue        │
-│ …                                            │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────┐
+│ RIVERBANKS  (Start reading) ≡│
+│      ◉ I            ◉ IV     │
+│ ◉ V    ◉ Start here          │  the map frames the markers
+│    ◉ III        ◉ II         │  in the space above the panel
+│                        ◉ E   │
+│ ┌──────────────────────────┐ │
+│ │ RIVERBANKS               │ │
+│ │ Welcome … explores …     │ │
+│ │ [P Prologue] [I Act One] │ │
+│ │ [II …]       [III …]     │ │
+│ └──────────────────────────┘ │
+└──────────────────────────────┘
 ```
+
+Menu open (below 900 px): full screen, paper at 96%, items 60 px tall: Start reading →,
+Chapters & map, Credits, and the licence line at the bottom.
 
 ## Keyboard interaction
 
-1. **Tab order:** the markers in reading order (Prologue … Epilogue, not their map order), then
-   Start reading, the intro's links, the Chapters list, the credits board, seapunk.asia.
-2. **Shortcuts:** none on the landing page. In placement mode a focused marker moves 1 unit with
-   the arrow keys, 10 with Shift.
+1. **Tab order:**
+   - The header: wordmark, the links or the hamburger, Start reading.
+   - Then the panel: Start reading, the chapter rows, the intro's links.
+   - Then the markers, in reading order.
+   - Opening the menu puts focus on its first item, and Tab stays inside it until it closes.
+2. **Shortcuts:** Esc closes the menu. In `/?place` (dev), arrows move a focused marker (Shift
+   for 10).
 3. **Focus:**
-   - Each marker is a link named for its chapter ("Prologue: Six Disasters, One Dream, from
-     page 4"), with a visible focus ring around the dot.
-   - Back from the reader returns to the landing page as it was. The browser restores scroll;
-     nothing to manage.
+   - Focusing a chapter row or a marker makes it `hot`, the same as hovering.
+   - Closing the menu returns focus to the hamburger.
+   - The header's Chapters on `/` focuses the first chapter row.
+   - Back from the reader lands on `/` with nothing hot.
 
 ## Test list (TDD)
 
-- [x] every chapter in `EDITION` has a marker, and every marker is a chapter — unit — `src/lib/comic/map.test.ts`
-- [x] `place(marker, crop)` gives percentages inside the crop: the crop's corners give 0% and 100% — unit — `map.test.ts`
-- [x] a marker outside the crop is reported as off-map — unit — `map.test.ts`
-- [x] markers come out in reading order whatever their map order — unit — `map.test.ts`
-- [x] `intro()` splits `intro.md` into paragraphs, drops the frontmatter, and keeps italics and links as HTML — unit — `src/lib/content/intro.test.ts`
-- [x] the `#TODO-link` target is replaced, never rendered — unit — `intro.test.ts`
+- [x] every chapter has a marker, and markers come out in reading order — unit — `src/lib/comic/map.test.ts`
+- [x] `intro()`: frontmatter, paragraphs, italics, links, the TODO link — unit — `src/lib/content/intro.test.ts`
+- [ ] `bounds(markers, pad)` is the padded box around the markers, in map units — unit — `map.test.ts`
+- [ ] `frame()` fits the markers' box inside the free rectangle and centres it — unit — `map.test.ts`
+- [ ] `frame()` pulls the map's edges back to the screen's when the map is bigger than the screen, so no gap shows — unit — `map.test.ts`
+- [ ] `frame()` with a free rectangle wider than the box is limited by height, and the other way round — unit — `map.test.ts`
+- [ ] `toScreen(point, frame)` turns map units into pixels — unit — `map.test.ts`
+- [ ] `layout(w, h)` is `'side'` for 1440×900 and 1180×820, `'bottom'` for 820×1180 and 390×844 — unit — `map.test.ts`
 
 ## Verification
 
-On the preview, on an iPad held upright:
+On the preview:
 
-1. Open `/`. The map with seven glowing markers and the first two paragraphs of Sam's intro show
-   without scrolling.
-2. Tap the Act Two marker: the reader opens on Act Two's divider and the URL reads `/p/11`.
-   Back returns to the landing page.
-3. Tap Start reading: `/p/4`, the Prologue.
-4. Scroll: the other four paragraphs, the chapters, the credits board, the licence line and the
-   footer. No draft copy is left.
-5. Keyboard (laptop): Tab from the top reaches the markers in reading order, each with a visible
-   ring, and Enter opens the reader.
-6. Phone width (390): the map is shorter but every marker is still on the land, and the text fits
-   with no sideways scroll.
+1. **Laptop (1440×900):**
+   - The map fills the window, with the header and the left panel over it, and every marker
+     clear of the panel.
+   - Hover Act Two in the list: its marker grows and names itself. Hover the Epilogue
+     marker: its row shades.
+2. **Keyboard:** Tab through the chapter rows. Each one lights its marker, and Enter opens
+   `/p/<first>`.
+3. **Narrow window (< 900 px):** the header shows a hamburger. Enter opens the menu with focus
+   on its first item; Esc closes it and focus returns to the hamburger.
+4. **iPad portrait:**
+   - The map fills the screen and the panel sits at the bottom, with every marker above it.
+   - Tap Act Two's button: `/p/11`. Back: the landing as it was.
+   - Turn the iPad to landscape: the side layout.
+5. **Phone (390 wide):** the sheet shows the title, ¶1, Start reading and the chips. The rest
+   scrolls inside the sheet, and the map frames the markers above it.
+6. **`/credits`:** the board, Open full size, Back to the map. The home page no longer has
+   credits.
 
 ## Out of scope
 
-- The fuller map (a diorama per location, director's commentary).
-- Meet the cast (F5) and Get involved (F4) pages: only their buttons, hidden until they exist.
+- The fuller map (dioramas, director's commentary), map pan and zoom.
+- The Cast (F5) and Get involved (F4) pages: their menu items stay hidden until they exist.
 - Rewording Sam's intro.
-- Animated markers beyond a gentle glow; no map pan or zoom.
+- A dragged bottom sheet. The phone's sheet scrolls inside itself instead.
 
 ## Open questions
 
 - [ ] Where does each act happen on the map? Yan places them (placement mode).
-- [ ] The intro's "here" link: the F4 form once it exists; until then, an email address? Which?
+- [ ] The intro's "here" link: the F4 form once it exists; until then, plain text.
 - [ ] Sam's "will be released here … in November 2026" paragraph: reword for launch? Sam's call.
-- [ ] Keep the mockup's lede line, or only Sam's words? (Plan: only Sam's.)
 
 ## Outcome
 
