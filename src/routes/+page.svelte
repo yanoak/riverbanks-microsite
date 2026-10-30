@@ -101,59 +101,64 @@
 	<SiteHeader overlay bind:height={headerHeight} />
 
 	<section class="panel {mode}" bind:this={panel} aria-labelledby="title">
-		<p class="kicker">Seapunk Studios presents</p>
-		<h1 id="title">Riverbanks</h1>
-		{#each fold as p, i (i)}
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
-			<p class="welcome">{@html p}</p>
-		{/each}
-
-		<div class="ctas">
-			<a class="btn" href={start}>Start reading →</a>
-			<a class="btn ghost" href={GET_INVOLVED_URL} target="_blank" rel="noopener">Get involved ↗</a>
-		</div>
-
-		<h2 class="label" id="chapters">
-			Chapters<span class="hint">
-				· {mode === 'side' ? 'hover' : 'tap'} to find them on the map</span
-			>
-		</h2>
-		<ol class="chapters" aria-labelledby="chapters">
-			{#each stops as s (s.key)}
-				<li>
-					<a
-						class="chapter"
-						class:hot={hot === s.key}
-						href="/p/{s.key}"
-						onpointerenter={() => (hot = s.key)}
-						onpointerleave={() => (hot = null)}
-						onfocus={() => (hot = s.key)}
-						onblur={() => (hot = null)}
-					>
-						<span class="badge" aria-hidden="true">{s.badge}</span>
-						<span class="name"
-							><strong>{split(s.title).name}</strong>{#if s.sub}<span class="sub"
-									>{` · ${s.sub}`}</span
-								>{/if}</span
-						>
-						<span class="page">p{s.key}</span>
-					</a>
-				</li>
-			{/each}
-		</ol>
-
-		<div class="more">
-			{#each rest as p, i (i)}
+		<!-- The scrolling happens inside, so the scrollbar sits within the card's rounded edge. -->
+		<div class="scroll">
+			<p class="kicker">Seapunk Studios presents</p>
+			<h1 id="title">Riverbanks</h1>
+			{#each fold as p, i (i)}
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
-				<p>{@html p}</p>
+				<p class="welcome">{@html p}</p>
 			{/each}
-		</div>
 
-		<p class="licence">
-			Riverbanks Volume I · BKKCAW26 Premiere Edition · CC BY-NC, Seapunk Studios &amp;
-			collaborators 2026 · <a href="/credits">Credits</a> ·
-			<a href="https://seapunk.asia" target="_blank" rel="noopener">seapunk.asia</a>
-		</p>
+			<div class="ctas">
+				<a class="btn" href={start}>Start reading →</a>
+				<a class="btn ghost" href={GET_INVOLVED_URL} target="_blank" rel="noopener"
+					>Get involved ↗</a
+				>
+			</div>
+
+			<h2 class="label" id="chapters">
+				Chapters<span class="hint">
+					· {mode === 'side' ? 'hover' : 'tap'} to find them on the map</span
+				>
+			</h2>
+			<ol class="chapters" aria-labelledby="chapters">
+				{#each stops as s (s.key)}
+					<li>
+						<a
+							class="chapter"
+							class:hot={hot === s.key}
+							href="/p/{s.key}"
+							onpointerenter={() => (hot = s.key)}
+							onpointerleave={() => (hot = null)}
+							onfocus={() => (hot = s.key)}
+							onblur={() => (hot = null)}
+						>
+							<span class="badge" aria-hidden="true">{s.badge}</span>
+							<span class="name"
+								><strong>{split(s.title).name}</strong>{#if s.sub}<span class="sub"
+										>{` · ${s.sub}`}</span
+									>{/if}</span
+							>
+							<span class="page">p{s.key}</span>
+						</a>
+					</li>
+				{/each}
+			</ol>
+
+			<div class="more">
+				{#each rest as p, i (i)}
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -- our own intro.md, escaped by intro() -->
+					<p>{@html p}</p>
+				{/each}
+			</div>
+
+			<p class="licence">
+				Riverbanks Volume I · BKKCAW26 Premiere Edition · CC BY-NC, Seapunk Studios &amp;
+				collaborators 2026 · <a href="/credits">Credits</a> ·
+				<a href="https://seapunk.asia" target="_blank" rel="noopener">seapunk.asia</a>
+			</p>
+		</div>
 	</section>
 </div>
 
@@ -179,23 +184,52 @@
 		position: absolute;
 		z-index: 5;
 		display: flex;
-		flex-direction: column;
-		gap: 0.85rem;
-		overflow-y: auto;
-		overscroll-behavior: contain;
+		overflow: hidden;
+		/* Room around the scroller, so its scrollbar stays clear of the rounded corners. */
+		padding: 0.6rem 0.4rem 0.6rem 0;
 		background: rgb(243 236 220 / 0.88);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		box-shadow: 0 10px 40px rgb(28 25 23 / 0.18);
 		line-height: 1.5;
 	}
+	.scroll {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		gap: 0.85rem;
+		min-height: 0;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		/* A quiet scrollbar: a thin ink thumb, no track. */
+		scrollbar-width: thin;
+		scrollbar-color: rgb(28 25 23 / 0.28) transparent;
+	}
+	/* Safari, which ignores the two properties above: the same thumb. */
+	.scroll::-webkit-scrollbar {
+		width: 10px;
+	}
+	.scroll::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.scroll::-webkit-scrollbar-thumb {
+		border: 3px solid transparent;
+		border-radius: 999px;
+		background: rgb(28 25 23 / 0.28) padding-box;
+	}
+	.scroll::-webkit-scrollbar-thumb:hover {
+		background-color: rgb(28 25 23 / 0.45);
+	}
 	.panel.side {
 		top: calc(4.5rem + 2rem);
 		bottom: 2rem;
 		left: 2rem;
 		width: 29rem;
-		padding: 2rem 1.9rem;
 		border-radius: 1rem;
+	}
+	.side .scroll {
+		padding: 1.4rem 1.5rem 1.4rem 1.9rem;
 	}
 	.panel.bottom {
 		right: 1.5rem;
@@ -203,12 +237,14 @@
 		left: 1.5rem;
 		max-height: 48vh;
 		max-height: 48svh;
-		padding: 1.75rem 1.75rem 1.5rem;
 		border-radius: 1.1rem;
+	}
+	.bottom .scroll {
+		padding: 1.15rem 1.35rem 0.9rem 1.75rem;
 	}
 
 	/* The panel scrolls; nothing in it should shrink to fit instead. */
-	.panel > :global(*) {
+	.scroll > :global(*) {
 		flex-shrink: 0;
 	}
 	.kicker {
@@ -365,9 +401,11 @@
 			bottom: 0;
 			left: 0;
 			max-height: 46svh;
-			gap: 0.7rem;
-			padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
 			border-radius: 1.25rem 1.25rem 0 0;
+		}
+		.bottom .scroll {
+			gap: 0.7rem;
+			padding: 0.65rem 0.85rem calc(0.65rem + env(safe-area-inset-bottom)) 1.25rem;
 		}
 		.bottom h1 {
 			font-size: 2.6rem;
@@ -395,8 +433,8 @@
 			display: flex;
 			flex-direction: row;
 			gap: 0.5rem;
-			margin: 0 -1.25rem;
-			padding: 0 1.25rem 0.25rem;
+			margin: 0 -0.85rem 0 -1.25rem;
+			padding: 0 0.85rem 0.25rem 1.25rem;
 			overflow-x: auto;
 			scrollbar-width: none;
 		}
